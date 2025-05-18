@@ -13,11 +13,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bell, Search, Settings, LogOut, User, CreditCard } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useMediaQuery } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 
 export function Header() {
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const [showMobileSearch, setShowMobileSearch] = useState(false);

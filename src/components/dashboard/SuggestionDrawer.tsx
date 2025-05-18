@@ -15,6 +15,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Check, Copy, AlertCircle, ThumbsUp, ThumbsDown } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { ReactNode } from "react";
 
 interface SuggestionDrawerProps {
   open: boolean;
@@ -36,7 +37,11 @@ const SuggestionDrawer = ({ open, onClose, suggestion }: SuggestionDrawerProps) 
   if (!suggestion) return null;
   
   // Based on suggestion type, show different content
-  let currentConfig, proposedChange, pros, cons, migrationCode;
+  let currentConfig: Record<string, string> = {};
+  let proposedChange: Record<string, string> = {};
+  let pros: string[] = [];
+  let cons: string[] = [];
+  let migrationCode = "";
   
   switch (suggestion.type) {
     case "model_switch":
@@ -189,7 +194,7 @@ const response = await openai.chat.completions.create({
                   {Object.entries(currentConfig).map(([key, value]) => (
                     <div key={key} className="flex justify-between">
                       <span className="text-gray-500">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</span>
-                      <span className="font-medium">{value}</span>
+                      <span className="font-medium">{value as ReactNode}</span>
                     </div>
                   ))}
                 </div>
@@ -204,7 +209,7 @@ const response = await openai.chat.completions.create({
                   {Object.entries(proposedChange).map(([key, value]) => (
                     <div key={key} className="flex justify-between">
                       <span className="text-gray-500">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</span>
-                      <span className="font-medium">{value}</span>
+                      <span className="font-medium">{value as ReactNode}</span>
                     </div>
                   ))}
                 </div>
