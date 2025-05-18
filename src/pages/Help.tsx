@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,37 +7,38 @@ import { Input } from "@/components/ui/input";
 import { Send, Mail } from "lucide-react";
 import GuideModal from "@/components/guides/GuideModal";
 
-// Import markdown guides
-import openaiGuide from "@/guides/openai.md";
-import anthropicGuide from "@/guides/anthropic.md";
-
 const Help = () => {
   const [guideModalOpen, setGuideModalOpen] = useState(false);
   const [currentGuide, setCurrentGuide] = useState({
     title: "",
-    content: ""
+    content: "",
+    path: ""
   });
 
   const handleGuideClick = (guide: string) => {
     if (guide === 'openai') {
       setCurrentGuide({
         title: "OpenAI Integration Guide",
-        content: openaiGuide
+        content: "",
+        path: "/src/guides/openai.md"
       });
     } else if (guide === 'anthropic') {
       setCurrentGuide({
         title: "Anthropic Integration Guide",
-        content: anthropicGuide
+        content: "",
+        path: "/src/guides/anthropic.md"
       });
     } else if (guide === 'self-hosted') {
       setCurrentGuide({
         title: "Self-Hosted LLMs Integration Guide",
-        content: "# Self-Hosted LLM Guide\n\nThis guide is coming soon. Please check back later."
+        content: "# Self-Hosted LLM Guide\n\nThis guide is coming soon. Please check back later.",
+        path: ""
       });
     } else if (guide === 'slack') {
       setCurrentGuide({
         title: "Slack Integration Guide",
-        content: "# Slack Integration Guide\n\nThis guide is coming soon. Please check back later."
+        content: "# Slack Integration Guide\n\nThis guide is coming soon. Please check back later.",
+        path: ""
       });
     }
     setGuideModalOpen(true);
@@ -345,6 +345,7 @@ const Help = () => {
         onClose={() => setGuideModalOpen(false)}
         title={currentGuide.title}
         content={currentGuide.content}
+        guidePath={currentGuide.path}
       />
     </div>
   );
