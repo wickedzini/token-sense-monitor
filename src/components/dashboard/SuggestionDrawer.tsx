@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ interface SuggestionDrawerProps {
 const SuggestionDrawer = ({ open, onClose, suggestion }: SuggestionDrawerProps) => {
   const [copied, setCopied] = useState(false);
   const [implementing, setImplementing] = useState(false);
+  const [dismissing, setDismissing] = useState(false);
   
   if (!suggestion) return null;
   
@@ -42,6 +44,8 @@ const SuggestionDrawer = ({ open, onClose, suggestion }: SuggestionDrawerProps) 
   let pros: string[] = [];
   let cons: string[] = [];
   let migrationCode = "";
+  let curlSnippet = "";
+  let qualityDelta = "≤5%"; // Default quality impact
   
   switch (suggestion.type) {
     case "model_switch":
@@ -72,6 +76,15 @@ const response = await openai.chat.completions.create({
   messages: messages,
   temperature: 0.7
 });`;
+      curlSnippet = `curl https://api.openai.com/v1/chat/completions \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer $OPENAI_API_KEY" \\
+  -d '{
+    "model": "gpt-3.5-turbo",
+    "messages": [{"role": "user", "content": "Hello!"}],
+    "temperature": 0.7
+  }'`;
+      qualityDelta = "≤5%";
       break;
     
     case "idle_resource":
@@ -94,6 +107,13 @@ aws ec2 stop-instances --instance-ids i-1234567890abcdef0
 aws autoscaling create-auto-scaling-group --auto-scaling-group-name dev-llm-asg \\
   --min-size 0 --max-size 2 --desired-capacity 1 \\
   --launch-template LaunchTemplateId=lt-0123456789abcdef0,Version='$Latest'`;
+      curlSnippet = `# AWS API call via curl
+curl -X POST \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer $AWS_TOKEN" \\
+  -d '{"InstanceIds": ["i-1234567890abcdef0"]}' \\
+  https://ec2.us-west-2.amazonaws.com/api/v1/instances/stop`;
+      qualityDelta = "0%";
       break;
       
     case "context_length":
@@ -132,6 +152,9 @@ const response = await openai.chat.completions.create({
   messages: trimContext(fullContextMessages),
   temperature: 0.7
 });`;
+      curlSnippet = `# No direct curl equivalent for this optimization
+# This is a code-level change to your application`;
+      qualityDelta = "≤2%";
       break;
       
     default:
@@ -140,12 +163,13 @@ const response = await openai.chat.completions.create({
       pros = [];
       cons = [];
       migrationCode = "";
+      curlSnippet = "";
   }
   
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(migrationCode);
+  const handleCopyCode = (code: string, type: 'migration' | 'curl') => {
+    navigator.clipboard.writeText(code);
     setCopied(true);
-    toast.success("Code copied to clipboard");
+    toast.success(`${type === 'migration' ? 'Code' : 'cURL snippet'} copied to clipboard`);
     
     setTimeout(() => {
       setCopied(false);
@@ -163,6 +187,17 @@ const response = await openai.chat.completions.create({
     }, 1000);
   };
   
+  const handleDismiss = () => {
+    setDismissing(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      toast.success("Suggestion dismissed");
+      setDismissing(false);
+      onClose();
+    }, 1000);
+  };
+  
   // Calculate savings impact
   const dailySavings = suggestion.impact;
   const monthlySavings = dailySavings * 30;
@@ -170,7 +205,7 @@ const response = await openai.chat.completions.create({
   
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="sm:max-w-lg overflow-y-auto">
+      <SheetContent className="sm:max-w-[480px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <span>{suggestion.title}</span>
@@ -181,6 +216,11 @@ const response = await openai.chat.completions.create({
           <SheetDescription>
             {suggestion.description}
           </SheetDescription>
+          <div className="mt-2">
+            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+              Quality impact: {qualityDelta}
+            </Badge>
+          </div>
         </SheetHeader>
         
         <div className="mt-6 space-y-6">
@@ -287,11 +327,31 @@ const response = await openai.chat.completions.create({
                     variant="ghost"
                     size="sm"
                     className="absolute right-2 top-2 h-8 w-8 p-0 bg-gray-800 hover:bg-gray-700 text-gray-300"
-                    onClick={handleCopyCode}
+                    onClick={() => handleCopyCode(migrationCode, 'migration')}
                   >
                     {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   </Button>
                   <code>{migrationCode}</code>
+                </pre>
+              </div>
+            </div>
+          )}
+
+          {/* cURL Snippet */}
+          {curlSnippet && (
+            <div>
+              <h3 className="font-medium text-gray-700 mb-2">cURL Snippet</h3>
+              <div className="relative">
+                <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm font-mono overflow-x-auto">
+                  <Button 
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-2 top-2 h-8 w-8 p-0 bg-gray-800 hover:bg-gray-700 text-gray-300"
+                    onClick={() => handleCopyCode(curlSnippet, 'curl')}
+                  >
+                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                  <code>{curlSnippet}</code>
                 </pre>
               </div>
             </div>
@@ -306,8 +366,8 @@ const response = await openai.chat.completions.create({
           </Alert>
           
           <div className="flex items-center justify-end gap-4 pt-4">
-            <Button variant="outline" onClick={onClose}>
-              Close
+            <Button variant="outline" onClick={handleDismiss} disabled={dismissing}>
+              {dismissing ? "Processing..." : "Dismiss"}
             </Button>
             <Button 
               onClick={handleMarkImplemented} 

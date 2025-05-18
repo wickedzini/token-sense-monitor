@@ -68,7 +68,7 @@ const SavingsSuggestions = ({ className }: SavingsSuggestionsProps) => {
       <Card className={cn("shadow-card", className)}>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-lg font-medium text-gray-700">Savings Suggestions</CardTitle>
-          <Link to="/analytics" className="text-sm text-brand-primary hover:underline flex items-center transition-colors">
+          <Link to="/suggestions" className="text-sm text-brand-primary hover:underline flex items-center transition-colors">
             View all suggestions
             <ExternalLink size={12} className="ml-1" />
           </Link>

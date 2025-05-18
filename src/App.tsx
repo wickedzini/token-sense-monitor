@@ -18,6 +18,12 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import Landing from "./pages/Landing";
+import Suggestions from "./pages/Suggestions";
+import Pricing from "./pages/Pricing";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Contact from "./pages/Contact";
+import Status from "./pages/Status";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
@@ -72,6 +78,11 @@ const AppRoutes = () => {
     <Routes>
       {/* Landing/Marketing page (unauthenticated) */}
       <Route path="/landing" element={<LandingRoute><Landing /></LandingRoute>} />
+      <Route path="/pricing" element={<Pricing />} />
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/status" element={<Status />} />
       
       {/* Auth Routes */}
       <Route path="/login" element={<AuthRoute><Login /></AuthRoute>} />
@@ -88,7 +99,9 @@ const AppRoutes = () => {
         <Route path="profile" element={<Profile />} />
         <Route path="billing" element={<Billing />} />
         <Route path="billing/checkout" element={<BillingCheckout />} />
+        <Route path="suggestions" element={<Suggestions />} />
         <Route path="suggest/:id" element={<Dashboard />} /> {/* This will be handled by the SuggestionDrawer */}
+        <Route path="alerts/:alertId" element={<Alerts />} /> {/* This will be handled by an AlertDetailDrawer */}
       </Route>
 
       {/* Redirect root for unauthenticated users to landing */}
