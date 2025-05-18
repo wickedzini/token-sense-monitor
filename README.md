@@ -1,73 +1,133 @@
-# Welcome to your Lovable project
 
-## Project info
+# TokenMeter.AI
 
-**URL**: https://lovable.dev/projects/f32c2cf6-d584-4259-82ca-4992473f505e
+Know exactly what every prompt costs—and cut the waste.
 
-## How can I edit this code?
+## About this Project
 
-There are several ways of editing your application.
+TokenMeter.AI is a SaaS tool that helps businesses track and optimize their spending on AI models. By connecting to providers like OpenAI, Anthropic, and self-hosted LLMs, TokenMeter.AI provides real-time visibility into costs, identifies opportunities for savings, and sends alerts when spending thresholds are crossed.
 
-**Use Lovable**
+## Features
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/f32c2cf6-d584-4259-82ca-4992473f505e) and start prompting.
+- **Cost Tracking**: Monitor spending across all your AI providers in real-time
+- **Smart Alerts**: Get notified about unusual spending patterns or when you approach budget limits
+- **Cost Optimization**: Receive recommendations to switch to cheaper models without sacrificing quality
+- **Idle Resource Detection**: Find and shut down unused GPU instances
+- **Multi-provider Support**: Works with OpenAI, Anthropic, and self-hosted LLMs
 
-Changes made via Lovable will be committed automatically to this repo.
+## Project Structure
 
-**Use your preferred IDE**
+- `/frontend`: Next.js front-end application
+- `/backend`: NestJS API and Cloud Functions
+- `/infra`: Terraform infrastructure as code
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Getting Started
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Prerequisites
 
-Follow these steps:
+- Node.js 18+
+- npm or yarn
+- A Supabase account (for backend functionality)
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Local Development
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/yourusername/tokenmeter-ai.git
+   cd tokenmeter-ai
+   ```
 
-# Step 3: Install the necessary dependencies.
-npm i
+2. Install dependencies:
+   ```sh
+   npm install
+   ```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+3. Start the development server:
+   ```sh
+   npm run dev
+   ```
+
+4. Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+## Backend Setup
+
+TokenMeter.AI uses Supabase for authentication, database, and storage. Here's how to set up the backend:
+
+### 1. Create a Supabase Project
+
+1. Go to [Supabase](https://supabase.io) and sign up for an account
+2. Create a new project
+3. Note your project's URL and anonymous key
+
+### 2. Set Environment Variables
+
+Create a `.env` file in the project root:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+OPENAI_API_KEY=your_openai_api_key (optional)
+ANTHROPIC_API_KEY=your_anthropic_api_key (optional)
+STRIPE_SECRET_KEY=your_stripe_secret_key (optional)
+STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret (optional)
+SLACK_CLIENT_ID=your_slack_client_id (optional)
+SLACK_CLIENT_SECRET=your_slack_client_secret (optional)
 ```
 
-**Edit a file directly in GitHub**
+### 3. Set Up the Database Schema
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Run the database migration script to set up the TimescaleDB schema:
 
-**Use GitHub Codespaces**
+```sh
+npm run db:migrate
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+This will create the necessary tables and extensions in your Supabase database.
 
-## What technologies are used for this project?
+### 4. Set Up Cron Jobs (For Production)
 
-This project is built with:
+For production deployment, set up the data collection cron jobs:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Using Google Cloud Scheduler:
 
-## How can I deploy this project?
+```sh
+gcloud scheduler jobs create http tokenmeter-collector \
+  --schedule="0 * * * *" \
+  --uri="https://your-deployed-app.com/api/collect" \
+  --http-method=POST \
+  --headers="Authorization=Bearer your_secret_token"
+```
 
-Simply open [Lovable](https://lovable.dev/projects/f32c2cf6-d584-4259-82ca-4992473f505e) and click on Share -> Publish.
+Or using Terraform:
 
-## Can I connect a custom domain to my Lovable project?
+```sh
+cd infra
+terraform init
+terraform apply
+```
 
-Yes, you can!
+## Deployment
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+When you're ready to deploy:
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+```sh
+npm run build
+```
+
+Then deploy the `/frontend` folder to your hosting provider of choice.
+
+## Tech Stack
+
+- **Frontend**: React, Next.js, shadcn/ui, Recharts
+- **Backend**: NestJS, Google Cloud Functions
+- **Database**: PostgreSQL with TimescaleDB extension
+- **Authentication**: Supabase Auth
+- **Infrastructure**: Terraform, Google Cloud Platform
+
+## License
+
+This project is proprietary and confidential. Unauthorized copying, modification, distribution, or any use of this material other than as intended is strictly prohibited.
+
+## Contact
+
+For support or questions, contact support@promptcost.io.

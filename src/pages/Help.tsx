@@ -1,12 +1,49 @@
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send, Mail } from "lucide-react";
+import GuideModal from "@/components/guides/GuideModal";
+
+// Import markdown guides
+import openaiGuide from "@/guides/openai.md";
+import anthropicGuide from "@/guides/anthropic.md";
 
 const Help = () => {
+  const [guideModalOpen, setGuideModalOpen] = useState(false);
+  const [currentGuide, setCurrentGuide] = useState({
+    title: "",
+    content: ""
+  });
+
+  const handleGuideClick = (guide: string) => {
+    if (guide === 'openai') {
+      setCurrentGuide({
+        title: "OpenAI Integration Guide",
+        content: openaiGuide
+      });
+    } else if (guide === 'anthropic') {
+      setCurrentGuide({
+        title: "Anthropic Integration Guide",
+        content: anthropicGuide
+      });
+    } else if (guide === 'self-hosted') {
+      setCurrentGuide({
+        title: "Self-Hosted LLMs Integration Guide",
+        content: "# Self-Hosted LLM Guide\n\nThis guide is coming soon. Please check back later."
+      });
+    } else if (guide === 'slack') {
+      setCurrentGuide({
+        title: "Slack Integration Guide",
+        content: "# Slack Integration Guide\n\nThis guide is coming soon. Please check back later."
+      });
+    }
+    setGuideModalOpen(true);
+  };
+
   return (
     <div className="space-y-6 max-w-5xl">
       <div>
@@ -107,7 +144,12 @@ const Help = () => {
                   </li>
                 </ol>
                 <div className="mt-6">
-                  <Button className="w-full">View Detailed Guide</Button>
+                  <Button 
+                    className="w-full" 
+                    onClick={() => handleGuideClick('openai')}
+                  >
+                    View Detailed Guide
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -141,7 +183,12 @@ const Help = () => {
                   </li>
                 </ol>
                 <div className="mt-6">
-                  <Button className="w-full">View Detailed Guide</Button>
+                  <Button 
+                    className="w-full"
+                    onClick={() => handleGuideClick('anthropic')}
+                  >
+                    View Detailed Guide
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -175,7 +222,12 @@ const Help = () => {
                   </li>
                 </ol>
                 <div className="mt-6">
-                  <Button className="w-full">View Detailed Guide</Button>
+                  <Button 
+                    className="w-full"
+                    onClick={() => handleGuideClick('self-hosted')}
+                  >
+                    View Detailed Guide
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -209,7 +261,12 @@ const Help = () => {
                   </li>
                 </ol>
                 <div className="mt-6">
-                  <Button className="w-full">View Detailed Guide</Button>
+                  <Button 
+                    className="w-full"
+                    onClick={() => handleGuideClick('slack')}
+                  >
+                    View Detailed Guide
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -282,6 +339,13 @@ const Help = () => {
           </Card>
         </TabsContent>
       </Tabs>
+      
+      <GuideModal
+        isOpen={guideModalOpen}
+        onClose={() => setGuideModalOpen(false)}
+        title={currentGuide.title}
+        content={currentGuide.content}
+      />
     </div>
   );
 };

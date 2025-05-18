@@ -9,6 +9,8 @@ type User = {
   email: string;
   name?: string;
   company?: string;
+  isDemo?: boolean;
+  plan?: 'free' | 'starter' | 'growth' | 'scale';
 };
 
 type AuthContextType = {
@@ -42,13 +44,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Very simple auth simulation - in a real app use Supabase Auth
+      // Demo account with pre-populated data
+      if (email === 'demo@tokenmeter.ai' && password === 'demo') {
+        const demoUser = { 
+          id: 'user-demo', 
+          email: 'demo@tokenmeter.ai', 
+          name: 'Demo User',
+          company: 'Demo Company',
+          isDemo: true,
+          plan: 'free' as const
+        };
+        setUser(demoUser);
+        localStorage.setItem('tokenmeter_user', JSON.stringify(demoUser));
+        toast.success('Successfully signed in to demo account');
+        navigate('/');
+        return;
+      }
+      
+      // Regular authentication for other accounts
       if (password === 'password') {
         const mockUser = { 
-          id: 'user-123', 
+          id: 'user-' + Math.random().toString(36).substring(2, 10), 
           email, 
           name: email.split('@')[0],
-          company: 'Acme Inc'
+          company: 'New Company',
+          isDemo: false,
+          plan: 'free' as const
         };
         setUser(mockUser);
         localStorage.setItem('tokenmeter_user', JSON.stringify(mockUser));
@@ -71,14 +92,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const mockUser = { 
-        id: 'user-' + Math.floor(Math.random() * 1000), 
+      const newUser = { 
+        id: 'user-' + Math.random().toString(36).substring(2, 10), 
         email,
         name,
-        company: 'New Company'
+        company: '',
+        isDemo: false,
+        plan: 'free' as const
       };
-      setUser(mockUser);
-      localStorage.setItem('tokenmeter_user', JSON.stringify(mockUser));
+      setUser(newUser);
+      localStorage.setItem('tokenmeter_user', JSON.stringify(newUser));
       toast.success('Account created successfully');
       navigate('/');
     } catch (error) {
@@ -93,7 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     localStorage.removeItem('tokenmeter_user');
     toast.success('Signed out successfully');
-    navigate('/login');
+    navigate('/landing');
   };
 
   const value = {

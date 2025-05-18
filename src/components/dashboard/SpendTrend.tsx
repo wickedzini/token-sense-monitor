@@ -2,6 +2,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface SpendTrendProps {
   className?: string;
@@ -29,7 +31,16 @@ const SpendTrend = ({ className }: SpendTrendProps) => {
   return (
     <Card className={cn("shadow-card", className)}>
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-medium text-gray-700">Spend Trend</CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-lg font-medium text-gray-700">Spend Trend</CardTitle>
+          <Link 
+            to="/analytics"
+            className="text-sm text-brand-primary flex items-center hover:underline"
+          >
+            View details
+            <ExternalLink size={12} className="ml-1" />
+          </Link>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="h-64">

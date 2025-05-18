@@ -10,9 +10,12 @@ import Models from "./pages/Models";
 import Alerts from "./pages/Alerts";
 import Settings from "./pages/Settings";
 import Help from "./pages/Help";
+import Analytics from "./pages/Analytics";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
+import Landing from "./pages/Landing";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
@@ -26,7 +29,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (!auth.isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/landing" replace />;
   }
   
   return <>{children}</>;
@@ -47,9 +50,27 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Landing page route - redirects to dashboard if authenticated
+const LandingRoute = ({ children }: { children: React.ReactNode }) => {
+  const auth = useAuth();
+  
+  if (auth.loading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+  
+  if (auth.isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
 const AppRoutes = () => {
   return (
     <Routes>
+      {/* Landing/Marketing page (unauthenticated) */}
+      <Route path="/landing" element={<LandingRoute><Landing /></LandingRoute>} />
+      
       {/* Auth Routes */}
       <Route path="/login" element={<AuthRoute><Login /></AuthRoute>} />
       <Route path="/signup" element={<AuthRoute><SignUp /></AuthRoute>} />
@@ -61,7 +82,12 @@ const AppRoutes = () => {
         <Route path="alerts" element={<Alerts />} />
         <Route path="settings" element={<Settings />} />
         <Route path="help" element={<Help />} />
+        <Route path="analytics" element={<Analytics />} />
+        <Route path="profile" element={<Profile />} />
       </Route>
+
+      {/* Redirect root for unauthenticated users to landing */}
+      <Route path="/" element={<Navigate to="/landing" replace />} />
       
       {/* 404 Route */}
       <Route path="*" element={<NotFound />} />

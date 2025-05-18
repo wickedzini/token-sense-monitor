@@ -1,7 +1,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { DollarSign, TrendingUp, TrendingDown } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface SpendOverviewProps {
   className?: string;
@@ -41,6 +42,14 @@ const SpendOverview = ({ className }: SpendOverviewProps) => {
             </div>
             <span className="text-sm text-gray-500">{data.period}</span>
           </div>
+          
+          <Link 
+            to="/analytics"
+            className="mt-4 text-sm text-brand-primary flex items-center hover:underline"
+          >
+            View details
+            <ExternalLink size={12} className="ml-1" />
+          </Link>
         </div>
       </CardContent>
     </Card>
