@@ -12,6 +12,8 @@ import Settings from "./pages/Settings";
 import Help from "./pages/Help";
 import Analytics from "./pages/Analytics";
 import Profile from "./pages/Profile";
+import Billing from "./pages/Billing";
+import BillingCheckout from "./pages/BillingCheckout";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
@@ -84,6 +86,9 @@ const AppRoutes = () => {
         <Route path="help" element={<Help />} />
         <Route path="analytics" element={<Analytics />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="billing" element={<Billing />} />
+        <Route path="billing/checkout" element={<BillingCheckout />} />
+        <Route path="suggest/:id" element={<Dashboard />} /> {/* This will be handled by the SuggestionDrawer */}
       </Route>
 
       {/* Redirect root for unauthenticated users to landing */}

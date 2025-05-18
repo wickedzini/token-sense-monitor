@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { DollarSign, TrendingUp, TrendingDown, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 interface SpendOverviewProps {
   className?: string;
@@ -27,7 +28,14 @@ const SpendOverview = ({ className }: SpendOverviewProps) => {
       </CardHeader>
       <CardContent>
         <div className="flex flex-col">
-          <span className="text-3xl font-display font-bold">${data.totalSpend.toFixed(2)}</span>
+          <motion.span 
+            className="text-3xl font-display font-bold"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            ${data.totalSpend.toFixed(2)}
+          </motion.span>
           <div className="flex items-center gap-1.5 mt-1">
             <div className={cn(
               "flex items-center text-sm",
@@ -45,7 +53,7 @@ const SpendOverview = ({ className }: SpendOverviewProps) => {
           
           <Link 
             to="/analytics"
-            className="mt-4 text-sm text-brand-primary flex items-center hover:underline"
+            className="mt-4 text-sm text-brand-primary flex items-center hover:underline transition-colors"
           >
             View details
             <ExternalLink size={12} className="ml-1" />

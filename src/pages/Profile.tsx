@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCcw, Trash2, Upload, Eye, EyeOff } from "lucide-react";
+import { RefreshCcw, Trash2, Upload, Eye, EyeOff, Loader2 } from "lucide-react";
 
 const Profile = () => {
   const { user, signOut } = useAuth();
@@ -20,7 +20,11 @@ const Profile = () => {
   const [role, setRole] = useState("Product Manager");
   const [timezone, setTimezone] = useState("America/New_York");
   const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
+  const [isUpgrading, setIsUpgrading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Show/hide password functionality
+  const [showPassword, setShowPassword] = useState(false);
   
   // Mock API keys
   const [apiKeys, setApiKeys] = useState([
@@ -76,6 +80,18 @@ const Profile = () => {
     // In a real app, this would call an API to delete the account
     toast.success("Account deleted successfully");
     signOut();
+  };
+  
+  const handleUpgradePlan = () => {
+    setIsUpgrading(true);
+    
+    // Simulate API call to create Stripe checkout session
+    setTimeout(() => {
+      setIsUpgrading(false);
+      // In a real app, this would redirect to the Stripe checkout
+      window.location.href = "/billing/checkout";
+      toast.success("Redirecting to checkout...");
+    }, 1500);
   };
 
   return (
@@ -173,6 +189,30 @@ const Profile = () => {
                   </Select>
                 </div>
               </div>
+              <div>
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Input 
+                    id="password" 
+                    type={showPassword ? "text" : "password"} 
+                    placeholder="••••••••" 
+                    value="currentpassword123"
+                    disabled
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </Button>
+                </div>
+                <div className="mt-2">
+                  <Button variant="outline" size="sm">Change password</Button>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -189,12 +229,25 @@ const Profile = () => {
         <CardContent>
           <div className="space-y-4">
             {apiKeys.map((apiKey) => (
-              <div key={apiKey.id} className="flex items-center justify-between p-4 border rounded-md">
+              <div key={apiKey.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-md gap-4">
                 <div>
                   <p className="font-medium">{apiKey.name}</p>
-                  <p className="text-sm text-gray-500">
-                    {apiKey.key.substring(0, 8)}...{apiKey.key.substring(apiKey.key.length - 4)}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-gray-500 font-mono">
+                      {apiKey.key.substring(0, 8)}...{apiKey.key.substring(apiKey.key.length - 4)}
+                    </p>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 w-6 p-0"
+                      onClick={() => {
+                        navigator.clipboard.writeText(apiKey.key);
+                        toast.success("API key copied to clipboard");
+                      }}
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                   <p className="text-xs text-gray-400">Created on {apiKey.createdAt}</p>
                 </div>
                 <div className="flex gap-2">
@@ -243,7 +296,7 @@ const Profile = () => {
           <CardDescription>Manage your subscription and billing</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-medium">Current Plan:</h3>
@@ -251,8 +304,19 @@ const Profile = () => {
               </div>
               <p className="text-sm text-gray-500 mt-1">25 days remaining</p>
             </div>
-            <Button className="bg-gradient-to-r from-brand-primary to-brand-secondary">
-              Upgrade plan
+            <Button 
+              className="bg-gradient-to-r from-brand-primary to-brand-secondary"
+              onClick={handleUpgradePlan}
+              disabled={isUpgrading}
+            >
+              {isUpgrading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating checkout...
+                </>
+              ) : (
+                "Upgrade plan"
+              )}
             </Button>
           </div>
         </CardContent>
@@ -295,5 +359,13 @@ const Profile = () => {
     </div>
   );
 };
+
+// Copy Icon Component
+const Copy = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+  </svg>
+);
 
 export default Profile;

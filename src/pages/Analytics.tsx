@@ -5,7 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, AreaChart, Area } from "recharts";
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer, 
+  LineChart, 
+  Line, 
+  AreaChart, 
+  Area 
+} from "recharts";
 import { format, subDays } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { CalendarIcon, Download, ArrowUpDown, ChevronDown } from "lucide-react";
@@ -14,6 +27,27 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
+import { motion } from "framer-motion";
+
+// Custom bar shape for rounded corners
+const RoundedBar = (props: any) => {
+  const { x, y, width, height, radius = 12, fill } = props;
+
+  return (
+    <g>
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        rx={radius}
+        ry={radius}
+        fill={fill}
+        className="drop-shadow-sm"
+      />
+    </g>
+  );
+};
 
 // Sample data for charts
 const generateDataForDaysBack = (daysBack: number) => {
@@ -30,6 +64,9 @@ const generateDataForDaysBack = (daysBack: number) => {
     const gpt35Spend = Math.floor(dailySpend * (0.2 + Math.random() * 0.15));
     const claudeSpend = Math.floor(dailySpend * (0.1 + Math.random() * 0.15));
     const llamaSpend = dailySpend - gpt4Spend - gpt35Spend - claudeSpend;
+
+    // Generate token count (roughly correlated with spend)
+    const tokenCount = dailySpend * (1000 + Math.floor(Math.random() * 500));
     
     data.push({
       date: formattedDate,
@@ -39,7 +76,8 @@ const generateDataForDaysBack = (daysBack: number) => {
       gpt35: gpt35Spend,
       claude: claudeSpend,
       llama: llamaSpend,
-      cumulative: 0 // Will calculate after
+      cumulative: 0, // Will calculate after
+      tokens: tokenCount
     });
   }
   
@@ -67,12 +105,22 @@ const expensivePrompts = [
   { id: 10, timestamp: "2023-05-17 12:41:37", model: "Claude-2", tokens: 6104, cost: 0.39, prompt: "Draft an employee handbook covering all HR policies..." }
 ];
 
+// Chart color palette - dark-mode friendly
+const chartColors = {
+  gpt4: "#6A4CFF",
+  gpt35: "#FFC46A",
+  claude: "#FF6A8A",
+  llama: "#4CAF50",
+  total: "#6A4CFF"
+};
+
 const Analytics = () => {
   const [date, setDate] = useState<DateRange | undefined>({
     from: subDays(new Date(), 7),
     to: new Date(),
   });
   const [chartData, setChartData] = useState(generateDataForDaysBack(7));
+  const [isLoading, setIsLoading] = useState(false);
   
   const handleDateRangeChange = (range: DateRange | undefined) => {
     if (range?.from) {
@@ -80,8 +128,14 @@ const Analytics = () => {
       // If both from and to dates are set, update the chart data
       if (range.from && range.to) {
         const daysBack = Math.round((range.to.getTime() - range.from.getTime()) / (1000 * 60 * 60 * 24));
-        setChartData(generateDataForDaysBack(daysBack));
-        toast.success(`Data updated for ${format(range.from, "PPP")} to ${format(range.to, "PPP")}`);
+        setIsLoading(true);
+        
+        // Simulate loading delay
+        setTimeout(() => {
+          setChartData(generateDataForDaysBack(daysBack));
+          setIsLoading(false);
+          toast.success(`Data updated for ${format(range.from!, "PPP")} to ${format(range.to!, "PPP")}`);
+        }, 800);
       }
     }
   };
@@ -90,12 +144,18 @@ const Analytics = () => {
     const to = new Date();
     const from = subDays(to, days);
     setDate({ from, to });
-    setChartData(generateDataForDaysBack(days));
-    toast.success(`Data updated for last ${days} days`);
+    setIsLoading(true);
+    
+    // Simulate loading delay
+    setTimeout(() => {
+      setChartData(generateDataForDaysBack(days));
+      setIsLoading(false);
+      toast.success(`Data updated for last ${days} days`);
+    }, 800);
   };
   
   const handleExportCSV = () => {
-    const headers = ["Date", "Total Spend", "GPT-4", "GPT-3.5", "Claude", "Llama"];
+    const headers = ["Date", "Total Spend", "GPT-4", "GPT-3.5", "Claude", "Llama", "Token Count"];
     
     const csvData = chartData.map(day => [
       format(day.rawDate, "yyyy-MM-dd"),
@@ -104,6 +164,7 @@ const Analytics = () => {
       day.gpt35.toFixed(2),
       day.claude.toFixed(2),
       day.llama.toFixed(2),
+      day.tokens.toString()
     ]);
     
     const csvContent = [
@@ -125,14 +186,19 @@ const Analytics = () => {
   };
   
   return (
-    <div className="space-y-6 max-w-7xl">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="space-y-6 max-w-7xl"
+    >
       <div>
         <h2 className="text-2xl font-display font-bold text-gray-900">Analytics</h2>
         <p className="text-gray-500 mt-1">Deep dive into your API usage patterns and costs</p>
       </div>
       
-      <div className="flex items-center justify-between">
-        <div className="flex gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={() => handlePresetClick(7)}>Last 7 days</Button>
           <Button variant="outline" size="sm" onClick={() => handlePresetClick(30)}>Last 30 days</Button>
           <Button variant="outline" size="sm" onClick={() => handlePresetClick(90)}>Last 90 days</Button>
@@ -189,10 +255,11 @@ const Analytics = () => {
       </div>
       
       <Tabs defaultValue="daily">
-        <TabsList>
+        <TabsList className="mb-4">
           <TabsTrigger value="daily">Daily Spend</TabsTrigger>
           <TabsTrigger value="cumulative">Cumulative</TabsTrigger>
           <TabsTrigger value="by-model">By Model</TabsTrigger>
+          <TabsTrigger value="tokens">Token Usage</TabsTrigger>
         </TabsList>
         
         <TabsContent value="daily">
@@ -204,14 +271,34 @@ const Analytics = () => {
             <CardContent className="pt-2">
               <div className="h-[350px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis tickFormatter={(value) => `$${value}`} />
-                    <Tooltip formatter={(value) => `$${value}`} />
-                    <Legend />
-                    <Bar dataKey="spend" fill="#3b82f6" name="Total Spend" />
-                  </BarChart>
+                  {isLoading ? (
+                    <div className="h-full w-full flex items-center justify-center">
+                      <div className="animate-pulse text-brand-primary">Loading data...</div>
+                    </div>
+                  ) : (
+                    <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                      <XAxis dataKey="date" />
+                      <YAxis tickFormatter={(value) => `$${value}`} />
+                      <Tooltip 
+                        formatter={(value) => [`$${value}`, "Total Spend"]}
+                        contentStyle={{ 
+                          borderRadius: "8px", 
+                          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                          border: "1px solid #f0f0f0" 
+                        }}
+                      />
+                      <Legend />
+                      <Bar 
+                        dataKey="spend" 
+                        fill={chartColors.total} 
+                        name="Total Spend" 
+                        shape={<RoundedBar />} 
+                        radius={12} 
+                        className="drop-shadow-sm"
+                      />
+                    </BarChart>
+                  )}
                 </ResponsiveContainer>
               </div>
             </CardContent>
@@ -227,14 +314,35 @@ const Analytics = () => {
             <CardContent className="pt-2">
               <div className="h-[350px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis tickFormatter={(value) => `$${value}`} />
-                    <Tooltip formatter={(value) => `$${value}`} />
-                    <Legend />
-                    <Line type="monotone" dataKey="cumulative" stroke="#8884d8" name="Cumulative Spend" strokeWidth={2} />
-                  </LineChart>
+                  {isLoading ? (
+                    <div className="h-full w-full flex items-center justify-center">
+                      <div className="animate-pulse text-brand-primary">Loading data...</div>
+                    </div>
+                  ) : (
+                    <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                      <XAxis dataKey="date" />
+                      <YAxis tickFormatter={(value) => `$${value}`} />
+                      <Tooltip 
+                        formatter={(value) => [`$${value}`, "Cumulative Spend"]}
+                        contentStyle={{ 
+                          borderRadius: "8px", 
+                          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                          border: "1px solid #f0f0f0" 
+                        }}
+                      />
+                      <Legend />
+                      <Line 
+                        type="monotone" 
+                        dataKey="cumulative" 
+                        stroke={chartColors.total} 
+                        name="Cumulative Spend" 
+                        strokeWidth={3}
+                        dot={{ stroke: chartColors.total, strokeWidth: 2, r: 4, fill: 'white' }}
+                        activeDot={{ stroke: chartColors.total, strokeWidth: 2, r: 6, fill: 'white' }}
+                      />
+                    </LineChart>
+                  )}
                 </ResponsiveContainer>
               </div>
             </CardContent>
@@ -250,17 +358,105 @@ const Analytics = () => {
             <CardContent className="pt-2">
               <div className="h-[350px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis tickFormatter={(value) => `$${value}`} />
-                    <Tooltip formatter={(value) => `$${value}`} />
-                    <Legend />
-                    <Area type="monotone" dataKey="gpt4" stackId="1" stroke="#8884d8" fill="#8884d8" name="GPT-4" />
-                    <Area type="monotone" dataKey="gpt35" stackId="1" stroke="#82ca9d" fill="#82ca9d" name="GPT-3.5" />
-                    <Area type="monotone" dataKey="claude" stackId="1" stroke="#ffc658" fill="#ffc658" name="Claude" />
-                    <Area type="monotone" dataKey="llama" stackId="1" stroke="#ff8042" fill="#ff8042" name="Llama" />
-                  </AreaChart>
+                  {isLoading ? (
+                    <div className="h-full w-full flex items-center justify-center">
+                      <div className="animate-pulse text-brand-primary">Loading data...</div>
+                    </div>
+                  ) : (
+                    <AreaChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                      <XAxis dataKey="date" />
+                      <YAxis tickFormatter={(value) => `$${value}`} />
+                      <Tooltip 
+                        formatter={(value) => [`$${value}`, ""]}
+                        contentStyle={{ 
+                          borderRadius: "8px", 
+                          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                          border: "1px solid #f0f0f0" 
+                        }}
+                      />
+                      <Legend />
+                      <Area 
+                        type="monotone" 
+                        dataKey="gpt4" 
+                        stackId="1" 
+                        stroke={chartColors.gpt4} 
+                        fill={chartColors.gpt4} 
+                        name="GPT-4" 
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="gpt35" 
+                        stackId="1" 
+                        stroke={chartColors.gpt35} 
+                        fill={chartColors.gpt35} 
+                        name="GPT-3.5" 
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="claude" 
+                        stackId="1" 
+                        stroke={chartColors.claude} 
+                        fill={chartColors.claude} 
+                        name="Claude" 
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="llama" 
+                        stackId="1" 
+                        stroke={chartColors.llama} 
+                        fill={chartColors.llama} 
+                        name="Llama" 
+                      />
+                    </AreaChart>
+                  )}
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="tokens">
+          <Card>
+            <CardHeader>
+              <CardTitle>Token Usage Trend</CardTitle>
+              <CardDescription>Token consumption over time</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <div className="h-[350px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  {isLoading ? (
+                    <div className="h-full w-full flex items-center justify-center">
+                      <div className="animate-pulse text-brand-primary">Loading data...</div>
+                    </div>
+                  ) : (
+                    <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                      <XAxis dataKey="date" />
+                      <YAxis
+                        tickFormatter={(value) => `${Math.round(value / 1000)}k`}
+                        domain={['dataMin', 'dataMax']}
+                      />
+                      <Tooltip 
+                        formatter={(value) => [`${value.toLocaleString()} tokens`, "Usage"]}
+                        contentStyle={{ 
+                          borderRadius: "8px", 
+                          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                          border: "1px solid #f0f0f0" 
+                        }}
+                      />
+                      <Legend />
+                      <Line 
+                        type="monotone" 
+                        dataKey="tokens" 
+                        stroke="#6A4CFF" 
+                        name="Token Usage" 
+                        strokeWidth={3} 
+                        dot={{ stroke: '#6A4CFF', strokeWidth: 2, r: 4, fill: 'white' }}
+                        activeDot={{ stroke: '#6A4CFF', strokeWidth: 2, r: 6, fill: 'white' }}
+                      />
+                    </LineChart>
+                  )}
                 </ResponsiveContainer>
               </div>
             </CardContent>
@@ -307,7 +503,7 @@ const Analytics = () => {
               </TableHeader>
               <TableBody>
                 {expensivePrompts.map((prompt) => (
-                  <TableRow key={prompt.id}>
+                  <TableRow key={prompt.id} className="hover:bg-gray-50/50 transition-colors">
                     <TableCell className="font-mono">{prompt.timestamp}</TableCell>
                     <TableCell>{prompt.model}</TableCell>
                     <TableCell>{prompt.tokens.toLocaleString()}</TableCell>
@@ -328,7 +524,7 @@ const Analytics = () => {
       <div className="text-sm text-gray-500">
         <p>Note: Analytics data is available for the past 180 days on the Growth plan and higher.</p>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

@@ -1,95 +1,66 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { PieChart, Pie, ResponsiveContainer, Cell, Legend, Tooltip } from "recharts";
 
 interface SpendRingChartProps {
   className?: string;
 }
 
-const COLORS = ["#6A4CFF", "#10B981", "#F59E0B", "#EF4444", "#A0AEC0"];
-
 const SpendRingChart = ({ className }: SpendRingChartProps) => {
   // Mock data - would be replaced with real API data
   const data = [
-    { name: "API", value: 42 },
-    { name: "Custom", value: 28 },
-    { name: "Fine-tuning", value: 15 },
-    { name: "Embeddings", value: 10 },
-    { name: "Other", value: 5 },
+    { name: "GPT-4", value: 47.20, percentage: 43.5, color: "#6A4CFF" },
+    { name: "Claude 3", value: 28.50, percentage: 26.3, color: "#FFC46A" },
+    { name: "GPT-3.5", value: 15.30, percentage: 14.1, color: "#FF6A8A" },
+    { name: "Llama 3", value: 10.45, percentage: 9.7, color: "#4CAF50" },
+    { name: "Other", value: 7.00, percentage: 6.4, color: "#A0AEC0" },
   ];
 
-  // Calculate total
-  const total = data.reduce((sum, item) => sum + item.value, 0);
-
-  // Custom tooltip
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
-      const percentage = ((data.value / total) * 100).toFixed(1);
       return (
-        <div className="bg-white p-2 border border-gray-200 shadow-sm rounded-md">
-          <p className="font-medium text-gray-800">{`${data.name}: $${data.value}`}</p>
-          <p className="text-gray-500">{`${percentage}% of spend`}</p>
+        <div className="bg-white p-3 border shadow-md rounded-lg">
+          <p className="font-medium">{data.name}</p>
+          <p className="text-sm">${data.value.toFixed(2)} ({data.percentage}%)</p>
         </div>
       );
     }
-
     return null;
   };
-  
-  // Custom renderer for the labels to ensure they fit
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, value, name }: any) => {
-    const RADIAN = Math.PI / 180;
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-    
-    // Short names that will fit inside the chart
-    const shortName = name.length > 8 ? `${name.substring(0, 7)}...` : name;
-    
-    // Only show labels for segments with enough area (more than 5% of total)
-    if (percent < 0.05) return null;
-    
-    return (
-      <text 
-        x={x} 
-        y={y} 
-        fill="white" 
-        textAnchor="middle" 
-        dominantBaseline="central"
-        fontSize={12}
-        fontWeight={500}
-      >
-        {`${shortName}`}
-      </text>
-    );
-  };
 
-  // Custom legend that provides more space for text
-  const CustomLegend = ({ payload }: any) => {
+  // Custom legend with percentage and dollar amount
+  const renderCustomLegend = (props: any) => {
+    const { payload } = props;
+    
     return (
-      <ul className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-4">
+      <div className="grid grid-cols-2 gap-2 mt-4">
         {payload.map((entry: any, index: number) => (
-          <li key={`item-${index}`} className="flex items-center">
+          <div key={`legend-item-${index}`} className="flex items-center gap-2">
             <div 
-              className="w-3 h-3 rounded-sm mr-2" 
+              className="h-3 w-3 rounded-sm" 
               style={{ backgroundColor: entry.color }}
             />
-            <span className="text-sm">{entry.value}: ${data[index].value}</span>
-          </li>
+            <div className="text-sm">
+              <span className="font-medium">{entry.payload.name}</span>
+              <span className="text-gray-500 ml-1 text-xs">
+                ({entry.payload.percentage}% · ${entry.payload.value.toFixed(2)})
+              </span>
+            </div>
+          </div>
         ))}
-      </ul>
+      </div>
     );
   };
 
   return (
     <Card className={cn("shadow-card", className)}>
-      <CardHeader className="pb-2">
+      <CardHeader>
         <CardTitle className="text-lg font-medium text-gray-700">Spend Breakdown</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="h-64 flex items-center justify-center">
+      <CardContent className="flex flex-col items-center">
+        <div className="h-60 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -98,19 +69,15 @@ const SpendRingChart = ({ className }: SpendRingChartProps) => {
                 cy="50%"
                 innerRadius={60}
                 outerRadius={80}
-                fill="#8884d8"
                 paddingAngle={2}
                 dataKey="value"
-                labelLine={false}
-                label={renderCustomizedLabel}
-                cornerRadius={4}
               >
                 {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
               <Tooltip content={<CustomTooltip />} />
-              <Legend content={<CustomLegend />} />
+              <Legend content={renderCustomLegend} />
             </PieChart>
           </ResponsiveContainer>
         </div>

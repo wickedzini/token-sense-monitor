@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 interface SpendTrendProps {
   className?: string;
@@ -35,7 +36,7 @@ const SpendTrend = ({ className }: SpendTrendProps) => {
           <CardTitle className="text-lg font-medium text-gray-700">Spend Trend</CardTitle>
           <Link 
             to="/analytics"
-            className="text-sm text-brand-primary flex items-center hover:underline"
+            className="text-sm text-brand-primary flex items-center hover:underline transition-colors"
           >
             View details
             <ExternalLink size={12} className="ml-1" />
@@ -43,7 +44,12 @@ const SpendTrend = ({ className }: SpendTrendProps) => {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="h-64">
+        <motion.div 
+          className="h-64"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.7, delay: 0.2 }}
+        >
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={data}
@@ -83,7 +89,7 @@ const SpendTrend = ({ className }: SpendTrendProps) => {
               />
             </AreaChart>
           </ResponsiveContainer>
-        </div>
+        </motion.div>
       </CardContent>
     </Card>
   );
