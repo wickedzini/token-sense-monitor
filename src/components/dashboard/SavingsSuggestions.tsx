@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { ChevronRight, ArrowRight, TrendingDown, Zap, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface SavingsSuggestionsProps {
   className?: string;
@@ -46,6 +47,8 @@ const SavingsSuggestion = ({ title, description, potentialSavings, quality, acti
 );
 
 const SavingsSuggestions = ({ className }: SavingsSuggestionsProps) => {
+  const navigate = useNavigate();
+  
   // Mock data - would be replaced with real API data
   const suggestions = [
     {
@@ -64,6 +67,10 @@ const SavingsSuggestions = ({ className }: SavingsSuggestionsProps) => {
       actionIcon: <Settings size={16} />,
     }
   ];
+
+  const handleViewAllSuggestions = () => {
+    navigate("/alerts");
+  };
 
   return (
     <Card className={cn("shadow-card", className)}>
@@ -84,10 +91,13 @@ const SavingsSuggestions = ({ className }: SavingsSuggestionsProps) => {
           ))}
         </div>
         <div className="mt-3 text-right">
-          <a href="#" className="text-sm text-brand-primary font-medium inline-flex items-center gap-1">
+          <button 
+            onClick={handleViewAllSuggestions}
+            className="text-sm text-brand-primary font-medium inline-flex items-center gap-1 hover:underline"
+          >
             <span>View all suggestions</span>
             <ArrowRight size={14} />
-          </a>
+          </button>
         </div>
       </CardContent>
     </Card>

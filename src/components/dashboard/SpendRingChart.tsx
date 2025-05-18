@@ -12,8 +12,8 @@ const COLORS = ["#6A4CFF", "#10B981", "#F59E0B", "#EF4444", "#A0AEC0"];
 const SpendRingChart = ({ className }: SpendRingChartProps) => {
   // Mock data - would be replaced with real API data
   const data = [
-    { name: "API Calls", value: 42 },
-    { name: "Custom Models", value: 28 },
+    { name: "API", value: 42 },
+    { name: "Custom", value: 28 },
     { name: "Fine-tuning", value: 15 },
     { name: "Embeddings", value: 10 },
     { name: "Other", value: 5 },
@@ -56,8 +56,9 @@ const SpendRingChart = ({ className }: SpendRingChartProps) => {
                 fill="#8884d8"
                 paddingAngle={2}
                 dataKey="value"
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                label={({ name, value }) => `${name}: $${value}`}
                 labelLine={false}
+                cornerRadius={4}
               >
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
