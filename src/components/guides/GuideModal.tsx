@@ -26,9 +26,7 @@ const GuideModal = ({ isOpen, onClose, content, title, guidePath }: GuideModalPr
         <ScrollArea className="flex-1 h-[60vh] pr-4">
           <div className="prose max-w-none dark:prose-invert">
             {guidePath ? (
-              <ReactMarkdown>
-                <GuideContent guidePath={guidePath} />
-              </ReactMarkdown>
+              <GuideContent guidePath={guidePath} />
             ) : (
               <ReactMarkdown>{content}</ReactMarkdown>
             )}
