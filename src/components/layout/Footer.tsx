@@ -12,14 +12,15 @@ const Footer = () => {
               <li><Link to="/pricing" className="text-sm text-gray-600 hover:text-gray-900">Pricing</Link></li>
               <li><Link to="/suggestions" className="text-sm text-gray-600 hover:text-gray-900">Suggestions</Link></li>
               <li><Link to="/status" className="text-sm text-gray-600 hover:text-gray-900">Status</Link></li>
+              <li><Link to="/demo" className="text-sm text-gray-600 hover:text-gray-900">Watch Demo</Link></li>
             </ul>
           </div>
           
           <div>
             <h3 className="font-medium mb-4">Resources</h3>
             <ul className="space-y-2">
-              <li><Link to="/help" className="text-sm text-gray-600 hover:text-gray-900">Documentation</Link></li>
-              <li><Link to="/help" className="text-sm text-gray-600 hover:text-gray-900">API Reference</Link></li>
+              <li><Link to="/docs" className="text-sm text-gray-600 hover:text-gray-900">Documentation</Link></li>
+              <li><Link to="/api-reference" className="text-sm text-gray-600 hover:text-gray-900">API Reference</Link></li>
               <li><a href="https://tokenmeter.ai/blog" className="text-sm text-gray-600 hover:text-gray-900">Blog</a></li>
             </ul>
           </div>
@@ -27,8 +28,8 @@ const Footer = () => {
           <div>
             <h3 className="font-medium mb-4">Company</h3>
             <ul className="space-y-2">
-              <li><a href="https://tokenmeter.ai/about" className="text-sm text-gray-600 hover:text-gray-900">About</a></li>
-              <li><a href="https://tokenmeter.ai/careers" className="text-sm text-gray-600 hover:text-gray-900">Careers</a></li>
+              <li><Link to="/about" className="text-sm text-gray-600 hover:text-gray-900">About</Link></li>
+              <li><Link to="/careers" className="text-sm text-gray-600 hover:text-gray-900">Careers</Link></li>
               <li><Link to="/contact" className="text-sm text-gray-600 hover:text-gray-900">Contact</Link></li>
             </ul>
           </div>
@@ -38,7 +39,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li><Link to="/privacy" className="text-sm text-gray-600 hover:text-gray-900">Privacy Policy</Link></li>
               <li><Link to="/terms" className="text-sm text-gray-600 hover:text-gray-900">Terms of Service</Link></li>
-              <li><a href="https://tokenmeter.ai/security" className="text-sm text-gray-600 hover:text-gray-900">Security</a></li>
+              <li><Link to="/security" className="text-sm text-gray-600 hover:text-gray-900">Security</Link></li>
             </ul>
           </div>
         </div>

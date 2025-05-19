@@ -205,15 +205,15 @@ const response = await openai.chat.completions.create({
   
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="sm:max-w-[480px] overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
+      <SheetContent className="sm:max-w-[550px] overflow-y-auto">
+        <SheetHeader className="mb-6">
+          <SheetTitle className="flex items-center gap-2 text-xl">
             <span>{suggestion.title}</span>
             <Badge variant="secondary" className="bg-green-50 text-green-700">
               {suggestion.impactType === "monthly" ? "$" + suggestion.impact + "/mo" : "$" + suggestion.impact + "/day"}
             </Badge>
           </SheetTitle>
-          <SheetDescription>
+          <SheetDescription className="text-base">
             {suggestion.description}
           </SheetDescription>
           <div className="mt-2">
@@ -222,139 +222,158 @@ const response = await openai.chat.completions.create({
             </Badge>
           </div>
         </SheetHeader>
-        
-        <div className="mt-6 space-y-6">
+
+        <div className="space-y-8">
           {/* Current vs Proposed */}
-          <div className="grid grid-cols-2 gap-4">
-            <Card>
-              <CardContent className="p-4 space-y-2">
-                <h4 className="font-medium text-gray-700">Current Configuration</h4>
-                <Separator />
-                <div className="space-y-2 text-sm">
-                  {Object.entries(currentConfig).map(([key, value]) => (
-                    <div key={key} className="flex justify-between">
-                      <span className="text-gray-500">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</span>
-                      <span className="font-medium">{value as ReactNode}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-4 space-y-2">
-                <h4 className="font-medium text-brand-primary">Proposed Change</h4>
-                <Separator />
-                <div className="space-y-2 text-sm">
-                  {Object.entries(proposedChange).map(([key, value]) => (
-                    <div key={key} className="flex justify-between">
-                      <span className="text-gray-500">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</span>
-                      <span className="font-medium">{value as ReactNode}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <section>
+            <h3 className="text-lg font-medium mb-4">Configuration Comparison</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <Card>
+                <CardContent className="p-4 space-y-2">
+                  <h4 className="font-medium text-gray-700">Current Configuration</h4>
+                  <Separator />
+                  <div className="space-y-2 text-sm">
+                    {Object.entries(currentConfig).map(([key, value]) => (
+                      <div key={key} className="flex justify-between">
+                        <span className="text-gray-500">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</span>
+                        <span className="font-medium">{value as ReactNode}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-4 space-y-2">
+                  <h4 className="font-medium text-brand-primary">Proposed Change</h4>
+                  <Separator />
+                  <div className="space-y-2 text-sm">
+                    {Object.entries(proposedChange).map(([key, value]) => (
+                      <div key={key} className="flex justify-between">
+                        <span className="text-gray-500">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</span>
+                        <span className="font-medium">{value as ReactNode}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
           
           {/* Impact Table */}
-          <div>
-            <h3 className="font-medium text-gray-700 mb-2">Cost Impact</h3>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Timeframe</TableHead>
-                  <TableHead>Savings</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell>Daily</TableCell>
-                  <TableCell className="font-medium">${dailySavings.toFixed(2)}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Monthly</TableCell>
-                  <TableCell className="font-medium">${monthlySavings.toFixed(2)}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Annually</TableCell>
-                  <TableCell className="font-medium text-green-600">${annualSavings.toFixed(2)}</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </div>
+          <section>
+            <h3 className="text-lg font-medium mb-4">Financial Impact</h3>
+            <Card>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50">
+                    <TableHead>Timeframe</TableHead>
+                    <TableHead>Savings</TableHead>
+                    <TableHead>Notes</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">Daily</TableCell>
+                    <TableCell>${dailySavings.toFixed(2)}</TableCell>
+                    <TableCell className="text-gray-500 text-sm">Based on current usage</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">Monthly</TableCell>
+                    <TableCell>${monthlySavings.toFixed(2)}</TableCell>
+                    <TableCell className="text-gray-500 text-sm">Projected for 30 days</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">Annually</TableCell>
+                    <TableCell className="text-green-600 font-bold">${annualSavings.toFixed(2)}</TableCell>
+                    <TableCell className="text-gray-500 text-sm">Projected for 12 months</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </Card>
+          </section>
           
           {/* Pros & Cons */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h3 className="font-medium text-gray-700 mb-2 flex items-center gap-1">
-                <ThumbsUp className="h-4 w-4 text-green-600" />
-                <span>Pros</span>
-              </h3>
-              <ul className="space-y-1">
-                {pros.map((pro, index) => (
-                  <li key={index} className="flex items-start gap-2 text-sm">
-                    <Check className="h-4 w-4 text-green-600 mt-0.5" />
-                    <span>{pro}</span>
-                  </li>
-                ))}
-              </ul>
+          <section>
+            <h3 className="text-lg font-medium mb-4">Considerations</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <Card>
+                <CardContent className="p-4">
+                  <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-1">
+                    <ThumbsUp className="h-4 w-4 text-green-600" />
+                    <span>Pros</span>
+                  </h4>
+                  <ul className="space-y-2">
+                    {pros.map((pro, index) => (
+                      <li key={index} className="flex items-start gap-2 text-sm">
+                        <Check className="h-4 w-4 text-green-600 mt-0.5" />
+                        <span>{pro}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-4">
+                  <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-1">
+                    <ThumbsDown className="h-4 w-4 text-amber-600" />
+                    <span>Cons</span>
+                  </h4>
+                  <ul className="space-y-2">
+                    {cons.map((con, index) => (
+                      <li key={index} className="flex items-start gap-2 text-sm">
+                        <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5" />
+                        <span>{con}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
             </div>
-            
-            <div>
-              <h3 className="font-medium text-gray-700 mb-2 flex items-center gap-1">
-                <ThumbsDown className="h-4 w-4 text-amber-600" />
-                <span>Cons</span>
-              </h3>
-              <ul className="space-y-1">
-                {cons.map((con, index) => (
-                  <li key={index} className="flex items-start gap-2 text-sm">
-                    <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5" />
-                    <span>{con}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+          </section>
           
           {/* Code Sample */}
           {migrationCode && (
-            <div>
-              <h3 className="font-medium text-gray-700 mb-2">Implementation Example</h3>
-              <div className="relative">
-                <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm font-mono overflow-x-auto">
-                  <Button 
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-2 top-2 h-8 w-8 p-0 bg-gray-800 hover:bg-gray-700 text-gray-300"
-                    onClick={() => handleCopyCode(migrationCode, 'migration')}
-                  >
-                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  </Button>
-                  <code>{migrationCode}</code>
-                </pre>
+            <section>
+              <h3 className="text-lg font-medium mb-4">Implementation</h3>
+              <div className="mb-4">
+                <h4 className="text-sm font-medium mb-2 text-gray-700">Code Example</h4>
+                <div className="relative">
+                  <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm font-mono overflow-x-auto">
+                    <Button 
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-2 top-2 h-8 w-8 p-0 bg-gray-800 hover:bg-gray-700 text-gray-300"
+                      onClick={() => handleCopyCode(migrationCode, 'migration')}
+                    >
+                      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                    <code>{migrationCode}</code>
+                  </pre>
+                </div>
               </div>
-            </div>
-          )}
 
-          {/* cURL Snippet */}
-          {curlSnippet && (
-            <div>
-              <h3 className="font-medium text-gray-700 mb-2">cURL Snippet</h3>
-              <div className="relative">
-                <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm font-mono overflow-x-auto">
-                  <Button 
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-2 top-2 h-8 w-8 p-0 bg-gray-800 hover:bg-gray-700 text-gray-300"
-                    onClick={() => handleCopyCode(curlSnippet, 'curl')}
-                  >
-                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  </Button>
-                  <code>{curlSnippet}</code>
-                </pre>
-              </div>
-            </div>
+              {/* cURL Snippet */}
+              {curlSnippet && (
+                <div>
+                  <h4 className="text-sm font-medium mb-2 text-gray-700">cURL Example</h4>
+                  <div className="relative">
+                    <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm font-mono overflow-x-auto">
+                      <Button 
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-2 top-2 h-8 w-8 p-0 bg-gray-800 hover:bg-gray-700 text-gray-300"
+                        onClick={() => handleCopyCode(curlSnippet, 'curl')}
+                      >
+                        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                      <code>{curlSnippet}</code>
+                    </pre>
+                  </div>
+                </div>
+              )}
+            </section>
           )}
           
           {/* Implementation Notes */}
@@ -365,13 +384,14 @@ const response = await openai.chat.completions.create({
             </AlertDescription>
           </Alert>
           
-          <div className="flex items-center justify-end gap-4 pt-4">
-            <Button variant="outline" onClick={handleDismiss} disabled={dismissing}>
+          <div className="flex items-center justify-end gap-4 pt-4 sticky bottom-0 bg-white border-t py-4">
+            <Button variant="outline" onClick={handleDismiss} disabled={dismissing} className="min-w-[100px]">
               {dismissing ? "Processing..." : "Dismiss"}
             </Button>
             <Button 
               onClick={handleMarkImplemented} 
               disabled={implementing}
+              className="bg-brand-primary hover:bg-brand-dark text-white min-w-[160px]"
             >
               {implementing ? "Processing..." : "Mark as implemented"}
             </Button>

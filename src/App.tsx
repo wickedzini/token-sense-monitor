@@ -24,6 +24,12 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import Status from "./pages/Status";
+import Documentation from "./pages/Documentation";
+import ApiReference from "./pages/ApiReference";
+import About from "./pages/About";
+import Careers from "./pages/Careers";
+import Security from "./pages/Security";
+import Demo from "./pages/Demo";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
@@ -83,6 +89,12 @@ const AppRoutes = () => {
       <Route path="/terms" element={<Terms />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/status" element={<Status />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/careers" element={<Careers />} />
+      <Route path="/security" element={<Security />} />
+      <Route path="/docs" element={<Documentation />} />
+      <Route path="/api-reference" element={<ApiReference />} />
+      <Route path="/demo" element={<Demo />} />
       
       {/* Auth Routes */}
       <Route path="/login" element={<AuthRoute><Login /></AuthRoute>} />

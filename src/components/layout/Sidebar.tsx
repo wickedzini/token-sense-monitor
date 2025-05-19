@@ -5,13 +5,15 @@ import {
   BarChart2Icon, 
   BellIcon, 
   Settings2Icon, 
-  HelpCircleIcon 
+  HelpCircleIcon,
+  LineChartIcon
 } from "lucide-react";
 
 const Sidebar = () => {
   const navItems = [
     { path: "/", icon: HomeIcon, label: "Dashboard" },
     { path: "/models", icon: BarChart2Icon, label: "Models" },
+    { path: "/analytics", icon: LineChartIcon, label: "Analytics" },
     { path: "/alerts", icon: BellIcon, label: "Alerts" },
     { path: "/settings", icon: Settings2Icon, label: "Settings" },
     { path: "/help", icon: HelpCircleIcon, label: "Help & FAQ" },

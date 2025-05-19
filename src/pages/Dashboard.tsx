@@ -12,7 +12,7 @@ const Dashboard = () => {
         <h2 className="text-2xl font-display font-bold text-gray-900">Analytics Overview</h2>
         <div className="flex items-center gap-2 text-sm">
           <span className="text-gray-500">Last updated:</span>
-          <span className="font-medium">May 18, 2025, 10:15 AM</span>
+          <span className="font-medium">May 19, 2025, 10:15 AM</span>
         </div>
       </div>
 
