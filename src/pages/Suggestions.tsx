@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -155,14 +154,14 @@ const Suggestions = () => {
 
         {/* Filter Bar */}
         <div className="flex flex-wrap gap-2 mb-4 mt-6">
-          <div className="flex-1 min-w-[240px]">
+          <div className="flex-1 min-w-[240px] relative">
             <Input
               placeholder="Search suggestions..."
               value={activeSearch}
               onChange={(e) => setActiveSearch(e.target.value)}
-              className="w-full"
-              icon={<Search className="h-4 w-4" />}
+              className="w-full pl-10"
             />
+            <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
           </div>
           <Popover>
             <PopoverTrigger asChild>
