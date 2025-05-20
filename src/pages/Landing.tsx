@@ -4,38 +4,106 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, ChevronRight, ChevronDown, ChevronUp } from "lucide-react";
+import { Check, ChevronRight, ChevronDown, ChevronUp, TrendingDown, ChevronLeft, TrendingUp, CircleDollarSign } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import { 
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Header } from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 
 const Landing = () => {
   const navigate = useNavigate();
   const [videoOpen, setVideoOpen] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
   
+  const testimonials = [
+    {
+      name: "Sarah Johnson",
+      role: "AI Lead at TechVision",
+      company: "TechVision",
+      image: "/placeholder.svg",
+      text: "TokenMeter helped us reduce our AI costs by 32% in the first month while maintaining quality. The suggestions engine is brilliant."
+    },
+    {
+      name: "Michael Chang",
+      role: "CTO",
+      company: "DataFlow AI",
+      image: "/placeholder.svg",
+      text: "The insights TokenMeter provides have transformed our approach to LLM usage. We've optimized our most expensive endpoints without sacrificing performance."
+    },
+    {
+      name: "Rebecca Torres",
+      role: "Engineering Manager",
+      company: "NexGen Solutions",
+      image: "/placeholder.svg",
+      text: "We were shocked to discover how much we could save by implementing TokenMeter's suggestions. The ROI was immediate and significant."
+    }
+  ];
+
+  const suggestions = [
+    {
+      title: "Optimize ChatBot Endpoint",
+      description: "Switch from gpt-4 to gpt-3.5-turbo for initial user interactions",
+      savings: "65% cost reduction",
+      icon: <TrendingDown className="h-8 w-8 text-savings-green" />,
+      tags: ["chat", "cost-optimization"]
+    },
+    {
+      title: "Reduce Token Usage",
+      description: "Trim context window for summarization tasks from 16k to 8k tokens",
+      savings: "48% token reduction",
+      icon: <CircleDollarSign className="h-8 w-8 text-savings-green" />,
+      tags: ["summarize", "context-optimization"]
+    },
+    {
+      title: "Model Selection Improvement",
+      description: "Use Claude Instant instead of GPT-4 for data extraction tasks",
+      savings: "72% cost savings",
+      icon: <TrendingDown className="h-8 w-8 text-savings-green" />,
+      tags: ["extraction", "model-switch"]
+    }
+  ];
+
+  const clients = [
+    { name: "Acme Corp", logo: "/placeholder.svg" },
+    { name: "TechGiant", logo: "/placeholder.svg" },
+    { name: "Innovate AI", logo: "/placeholder.svg" },
+    { name: "DataStream", logo: "/placeholder.svg" },
+    { name: "FutureScale", logo: "/placeholder.svg" },
+    { name: "CodeNexus", logo: "/placeholder.svg" }
+  ];
+  
   return (
     <>
+      <Header />
+
       {/* Hero Section */}
       <section className="relative bg-gradient-to-b from-white to-gray-50 pt-16 pb-32 overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-10">
             <div className="max-w-2xl">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-6 text-gray-900">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-6 text-gray-900 animate-fade-in">
                 Monitor and Optimize Your LLM Costs
               </h1>
               <p className="text-lg md:text-xl text-gray-600 mb-8">
                 TokenMeter helps you track, analyze, and reduce your spend across OpenAI, Anthropic, and other LLM providers—without sacrificing quality.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Button className="bg-brand-primary hover:bg-brand-dark text-white text-lg py-6 px-8" size="lg" asChild>
+                <Button className="bg-brand-primary hover:bg-brand-dark text-white text-lg py-6 px-8 animate-enter" size="lg" asChild>
                   <Link to="/signup">Start Free Trial</Link>
                 </Button>
-                <Button variant="outline" className="text-lg py-6 px-8" size="lg" onClick={() => setVideoOpen(true)}>
+                <Button variant="outline" className="text-lg py-6 px-8 animate-enter" style={{ animationDelay: "0.2s" }} size="lg" onClick={() => setVideoOpen(true)}>
                   Watch Demo
                 </Button>
               </div>
@@ -43,8 +111,8 @@ const Landing = () => {
                 No credit card required. Free 14-day trial.
               </p>
             </div>
-            <div className="max-w-xl w-full">
-              <div className="bg-white rounded-lg shadow-xl border border-gray-100 p-4">
+            <div className="max-w-xl w-full animate-fade-in" style={{ animationDelay: "0.3s" }}>
+              <div className="bg-white rounded-lg shadow-xl border border-gray-100 p-4 transform transition-all hover:scale-105 duration-300">
                 <img 
                   src="/placeholder.svg" 
                   alt="TokenMeter Dashboard" 
@@ -62,6 +130,148 @@ const Landing = () => {
         <div className="absolute bottom-20 left-20 w-72 h-72 bg-brand-light/20 rounded-full blur-3xl -z-10"></div>
       </section>
 
+      {/* Trusted By Section */}
+      <section className="py-12 bg-white border-y border-gray-100">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8">
+            <h2 className="text-lg text-gray-600 font-medium">Trusted by innovative teams</h2>
+          </div>
+          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
+            {clients.map((client, index) => (
+              <div key={index} className="grayscale hover:grayscale-0 transition-all duration-300" 
+                   style={{ animationDelay: `${index * 0.1}s` }}>
+                <img src={client.logo} alt={client.name} className="h-12 md:h-16 w-auto" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Smart Suggestions Preview */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <Badge className="mb-4 bg-brand-primary text-white px-3 py-1">Smart Engine</Badge>
+            <h2 className="text-3xl font-display font-bold mb-4">AI-Powered Cost Optimization</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Our Smart Suggestions Engine continuously analyzes your LLM usage and recommends ways to reduce costs without sacrificing quality.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {suggestions.map((suggestion, index) => (
+              <Card key={index} className="shadow-sm hover:shadow-md transition-shadow duration-300 border-gray-200 overflow-hidden">
+                <CardHeader className="pb-2 bg-gray-50 border-b">
+                  <div className="flex items-center justify-between mb-2">
+                    {suggestion.icon}
+                    <Badge variant="outline" className="text-savings-green border-savings-green">
+                      {suggestion.savings}
+                    </Badge>
+                  </div>
+                  <CardTitle className="text-xl">{suggestion.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <p className="text-gray-600">{suggestion.description}</p>
+                  <div className="flex gap-2 mt-3">
+                    {suggestion.tags.map((tag, i) => (
+                      <Badge key={i} variant="secondary" className="bg-brand-light/20 text-brand-primary">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+                <CardFooter className="border-t pt-3 bg-gray-50">
+                  <Button variant="link" className="text-brand-primary p-0" asChild>
+                    <Link to="/suggestions">View detail <ChevronRight className="h-4 w-4 ml-1" /></Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Dashboard Screenshots Carousel */}
+      <section className="py-20 bg-white overflow-hidden">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-display font-bold mb-4">See TokenMeter in Action</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Explore our intuitive dashboards and powerful analytics tools
+            </p>
+          </div>
+
+          <div className="max-w-5xl mx-auto">
+            <Carousel className="w-full">
+              <CarouselContent>
+                {[1, 2, 3].map((_, index) => (
+                  <CarouselItem key={index}>
+                    <div className="p-2">
+                      <div className="bg-white rounded-xl overflow-hidden shadow-lg border border-gray-200">
+                        <img 
+                          src="/placeholder.svg" 
+                          alt={`TokenMeter Dashboard ${index + 1}`}
+                          className="w-full h-auto aspect-video object-cover" 
+                        />
+                        <div className="p-4 bg-white">
+                          <h3 className="font-medium text-lg">
+                            {index === 0 && "Cost Analytics Dashboard"}
+                            {index === 1 && "Model Performance Comparison"}
+                            {index === 2 && "Smart Suggestions Panel"}
+                          </h3>
+                          <p className="text-gray-600 text-sm mt-1">
+                            {index === 0 && "Track spending across different models and endpoints in real-time"}
+                            {index === 1 && "Compare performance metrics and costs between different LLM providers"}
+                            {index === 2 && "Get actionable recommendations to optimize your LLM usage"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <div className="flex justify-center gap-2 mt-4">
+                <CarouselPrevious className="static transform-none mx-2" />
+                <CarouselNext className="static transform-none mx-2" />
+              </div>
+            </Carousel>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-display font-bold mb-4">What Our Customers Say</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Teams using TokenMeter are seeing significant cost reductions while maintaining LLM quality
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {testimonials.map((testimonial, index) => (
+              <Card key={index} className="shadow-md hover:shadow-lg transition-all duration-300">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-full bg-brand-light overflow-hidden">
+                      <img src={testimonial.image} alt={testimonial.name} className="h-full w-full object-cover" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">{testimonial.name}</CardTitle>
+                      <p className="text-sm text-gray-500">{testimonial.role}, {testimonial.company}</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 italic">"{testimonial.text}"</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
@@ -73,7 +283,7 @@ const Landing = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="shadow-sm">
+            <Card className="shadow-sm hover:shadow-md transition-all duration-300 hover:translate-y-[-5px]">
               <CardHeader className="pb-2">
                 <div className="h-12 w-12 rounded-lg bg-brand-light flex items-center justify-center mb-4">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6A4CFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -87,7 +297,7 @@ const Landing = () => {
               </CardContent>
             </Card>
 
-            <Card className="shadow-sm">
+            <Card className="shadow-sm hover:shadow-md transition-all duration-300 hover:translate-y-[-5px]">
               <CardHeader className="pb-2">
                 <div className="h-12 w-12 rounded-lg bg-brand-light flex items-center justify-center mb-4">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6A4CFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -101,7 +311,7 @@ const Landing = () => {
               </CardContent>
             </Card>
 
-            <Card className="shadow-sm">
+            <Card className="shadow-sm hover:shadow-md transition-all duration-300 hover:translate-y-[-5px]">
               <CardHeader className="pb-2">
                 <div className="h-12 w-12 rounded-lg bg-brand-light flex items-center justify-center mb-4">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6A4CFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -117,7 +327,7 @@ const Landing = () => {
               </CardContent>
             </Card>
 
-            <Card className="shadow-sm">
+            <Card className="shadow-sm hover:shadow-md transition-all duration-300 hover:translate-y-[-5px]">
               <CardHeader className="pb-2">
                 <div className="h-12 w-12 rounded-lg bg-brand-light flex items-center justify-center mb-4">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6A4CFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -132,7 +342,7 @@ const Landing = () => {
               </CardContent>
             </Card>
 
-            <Card className="shadow-sm">
+            <Card className="shadow-sm hover:shadow-md transition-all duration-300 hover:translate-y-[-5px]">
               <CardHeader className="pb-2">
                 <div className="h-12 w-12 rounded-lg bg-brand-light flex items-center justify-center mb-4">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6A4CFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -146,7 +356,7 @@ const Landing = () => {
               </CardContent>
             </Card>
 
-            <Card className="shadow-sm">
+            <Card className="shadow-sm hover:shadow-md transition-all duration-300 hover:translate-y-[-5px]">
               <CardHeader className="pb-2">
                 <div className="h-12 w-12 rounded-lg bg-brand-light flex items-center justify-center mb-4">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6A4CFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -470,6 +680,8 @@ const Landing = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <Footer />
     </>
   );
 };
