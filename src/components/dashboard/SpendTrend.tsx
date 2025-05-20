@@ -1,95 +1,228 @@
-
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { ExternalLink } from "lucide-react";
-import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { format, subDays, startOfMonth, endOfMonth, isSameDay } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+
+interface DateRange {
+  from: Date;
+  to: Date;
+}
+
+// Simulated data for the chart
+const generateDailyData = (dateRange: DateRange) => {
+  const data = [];
+  const currentDate = new Date(dateRange.from);
+  
+  while (currentDate <= dateRange.to) {
+    const dayOfWeek = currentDate.getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    
+    // Randomize daily spend with higher values on weekdays
+    const baseValue = isWeekend ? 20 + Math.random() * 25 : 40 + Math.random() * 60;
+    
+    data.push({
+      date: format(currentDate, "MMM d"),
+      GPT4: Math.round(baseValue * 0.6),
+      GPT3: Math.round(baseValue * 0.3),
+      Claude: Math.round(baseValue * 0.1),
+      total: Math.round(baseValue),
+    });
+    
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+  
+  return data;
+};
 
 interface SpendTrendProps {
   className?: string;
 }
 
 const SpendTrend = ({ className }: SpendTrendProps) => {
-  // Mock data - would be replaced with real API data
-  const data = [
-    { date: "Apr 1", spend: 4.5 },
-    { date: "Apr 2", spend: 3.8 },
-    { date: "Apr 3", spend: 6.2 },
-    { date: "Apr 4", spend: 5.7 },
-    { date: "Apr 5", spend: 4.9 },
-    { date: "Apr 6", spend: 7.3 },
-    { date: "Apr 7", spend: 6.8 },
-    { date: "Apr 8", spend: 8.1 },
-    { date: "Apr 9", spend: 9.5 },
-    { date: "Apr 10", spend: 8.7 },
-    { date: "Apr 11", spend: 7.4 },
-    { date: "Apr 12", spend: 9.2 },
-    { date: "Apr 13", spend: 10.1 },
-    { date: "Apr 14", spend: 9.8 },
-  ];
-
+  const [date, setDate] = useState<DateRange>({
+    from: subDays(new Date(), 30),
+    to: new Date(),
+  });
+  
+  const [chartData, setChartData] = useState(() => generateDailyData(date));
+  
+  const [selectedPreset, setSelectedPreset] = useState<string>("30d");
+  
+  const handleRangeSelect = (newRange: DateRange) => {
+    setDate(newRange);
+    setChartData(generateDailyData(newRange));
+  };
+  
+  const setPreset = (preset: string) => {
+    setSelectedPreset(preset);
+    const now = new Date();
+    
+    let from: Date;
+    let to: Date = now;
+    
+    switch (preset) {
+      case "7d":
+        from = subDays(now, 7);
+        break;
+      case "30d":
+        from = subDays(now, 30);
+        break;
+      case "mtd":
+        from = startOfMonth(now);
+        break;
+      case "custom":
+        // Keep current range for custom
+        return;
+      default:
+        from = subDays(now, 30);
+    }
+    
+    const newRange = { from, to };
+    handleRangeSelect(newRange);
+  };
+  
+  // Get total spend for the period
+  const totalSpend = chartData.reduce((sum, day) => sum + day.total, 0);
+  
+  // Calculate dynamic radius based on bar width
+  // For a responsive chart, this is approximated
+  const calculateRadius = (dataLength: number) => {
+    // The more data points, the smaller the radius should be
+    if (dataLength >= 30) return 0; // No radius for many bars (monthly view)
+    if (dataLength >= 14) return 2; // Small radius for moderate number of bars
+    if (dataLength >= 7) return 4;  // Medium radius for weekly view
+    return 6; // Larger radius for few bars
+  };
+  
+  const barRadius = calculateRadius(chartData.length);
+  
+  // Custom date display
+  const dateRangeText = selectedPreset === "custom" 
+    ? `Custom range: ${format(date.from, "d MMM")} – ${format(date.to, "d MMM yyyy")}`
+    : selectedPreset === "7d" 
+      ? "Last 7 days" 
+      : selectedPreset === "30d" 
+        ? "Last 30 days"
+        : "Month to date";
+  
   return (
-    <Card className={cn("shadow-card", className)}>
+    <Card className={cn("h-full", className)}>
       <CardHeader className="pb-2">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-lg font-medium text-gray-700">Spend Trend</CardTitle>
-          <Link 
-            to="/analytics"
-            className="text-sm text-brand-primary flex items-center hover:underline transition-colors"
-          >
-            View details
-            <ExternalLink size={12} className="ml-1" />
-          </Link>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+          <CardTitle className="text-lg font-medium">Daily Spend</CardTitle>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex">
+              <Button 
+                variant={selectedPreset === "7d" ? "default" : "outline"} 
+                size="sm" 
+                className="h-8 rounded-r-none"
+                onClick={() => setPreset("7d")}
+              >
+                7d
+              </Button>
+              <Button 
+                variant={selectedPreset === "30d" ? "default" : "outline"} 
+                size="sm" 
+                className="h-8 rounded-none border-x-0"
+                onClick={() => setPreset("30d")}
+              >
+                30d
+              </Button>
+              <Button 
+                variant={selectedPreset === "mtd" ? "default" : "outline"} 
+                size="sm" 
+                className="h-8 rounded-l-none"
+                onClick={() => setPreset("mtd")}
+              >
+                MTD
+              </Button>
+            </div>
+            
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant={selectedPreset === "custom" ? "default" : "outline"} 
+                  size="sm" 
+                  className="h-8 flex gap-1"
+                  onClick={() => setSelectedPreset("custom")}
+                >
+                  <CalendarIcon className="h-3.5 w-3.5" />
+                  <span>Custom</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="range"
+                  selected={{ from: date.from, to: date.to }}
+                  onSelect={(selected) => {
+                    if (selected?.from && selected?.to) {
+                      handleRangeSelect({ from: selected.from, to: selected.to });
+                      setSelectedPreset("custom");
+                    }
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-500">{dateRangeText}</span>
+          <span className="font-medium">Total: ${totalSpend}</span>
         </div>
       </CardHeader>
-      <CardContent>
-        <motion.div 
-          className="h-64"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-        >
+      <CardContent className="pt-2">
+        <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
-              data={data}
-              margin={{
-                top: 5,
-                right: 5,
-                left: 0,
-                bottom: 5,
-              }}
+            <BarChart
+              data={chartData}
+              margin={{ top: 20, right: 30, left: 0, bottom: 15 }}
+              stackOffset="sign"
             >
-              <defs>
-                <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#6A4CFF" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#6A4CFF" stopOpacity={0.1}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis 
-                dataKey="date" 
-                tick={{ fontSize: 11 }}
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 12 }}
                 tickLine={false}
-                axisLine={{ stroke: '#E5E7EB' }}
+                axisLine={false}
               />
-              <YAxis 
+              <YAxis
+                tick={{ fontSize: 12 }}
+                tickLine={false}
+                axisLine={false}
                 tickFormatter={(value) => `$${value}`}
-                tick={{ fontSize: 11 }}
-                tickLine={false}
-                axisLine={{ stroke: '#E5E7EB' }}
               />
-              <Tooltip formatter={(value) => [`$${value}`, "Daily Spend"]} />
-              <Area
-                type="monotone"
-                dataKey="spend"
-                stroke="#6A4CFF"
-                fillOpacity={1}
-                fill="url(#spendGradient)"
+              <Tooltip
+                formatter={(value) => [`$${value}`, ""]}
+                labelFormatter={(label) => `Date: ${label}`}
               />
-            </AreaChart>
+              <Legend />
+              <Bar 
+                dataKey="GPT4" 
+                stackId="a" 
+                fill="#6A4CFF" 
+                radius={barRadius}
+              />
+              <Bar 
+                dataKey="GPT3" 
+                stackId="a" 
+                fill="#9A7BFF" 
+                radius={barRadius}
+              />
+              <Bar 
+                dataKey="Claude" 
+                stackId="a" 
+                fill="#C4B5FF" 
+                radius={barRadius}
+              />
+            </BarChart>
           </ResponsiveContainer>
-        </motion.div>
+        </div>
       </CardContent>
     </Card>
   );

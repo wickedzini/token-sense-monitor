@@ -1,110 +1,122 @@
 
 # TokenMeter.AI
 
-A cost analytics platform for AI API usage tracking.
+TokenMeter is an analytics and optimization platform designed to help companies understand, optimize, and reduce their LLM (Large Language Model) spending without sacrificing quality.
 
 ## Features
 
-- **Dashboard**: View your AI API spend at a glance
-- **Models**: Compare usage across different models and providers
-- **Alerts**: Set up notifications for cost thresholds
-- **Analytics**: Deep-dive into spending patterns
-- **Settings**: Configure API connections and preferences
+- **Real-time Monitoring**: Track your LLM API usage and costs across providers
+- **Cost Optimization**: Receive AI-generated suggestions to reduce costs
+- **Quality Comparison**: A/B test different models to ensure quality is maintained
+- **Usage Analytics**: Understand your spending patterns and identify opportunities for savings
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18.x or higher
-- npm or yarn
+- Node.js 18+
+- NPM or Yarn
 
 ### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/yourusername/tokenmeter.git
+
+# Install dependencies
 npm install
-# or
-yarn install
-```
 
-### Development
-
-```bash
+# Start the development server
 npm run dev
-# or
-yarn dev
-```
-
-Visit `http://localhost:8080` to see the app.
-
-## Backend Setup
-
-TokenMeter.AI uses [Supabase](https://supabase.com) for authentication, database, and storage.
-
-### Step 1: Create a Supabase Project
-
-1. Sign up for a Supabase account at [supabase.com](https://supabase.com)
-2. Create a new project
-3. Once your project is created, go to Settings > API to find your project URL and anon key
-
-### Step 2: Configure Environment Variables
-
-Create a `.env` file in the root directory with the following variables:
-
-```
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-### Step 3: Set Up the Database Schema
-
-Run the migration script to set up the TimescaleDB schema:
-
-```bash
-npm run db:migrate
-```
-
-### Step 4: Configure Cron Jobs
-
-To automatically fetch API usage data, set up a cron job:
-
-#### Using Google Cloud Scheduler:
-
-```bash
-gcloud scheduler jobs create http tokenmeter-daily-sync \
-  --schedule="0 0 * * *" \
-  --uri="https://your-app-url.com/api/sync" \
-  --http-method=POST \
-  --headers="Authorization=Bearer your-secret-key"
-```
-
-#### Using Terraform:
-
-```hcl
-resource "google_cloud_scheduler_job" "tokenmeter_daily_sync" {
-  name        = "tokenmeter-daily-sync"
-  description = "Daily sync of API usage data"
-  schedule    = "0 0 * * *"
-  
-  http_target {
-    uri         = "https://your-app-url.com/api/sync"
-    http_method = "POST"
-    headers     = {
-      "Authorization" = "Bearer your-secret-key"
-    }
-  }
-}
 ```
 
 ## Environment Variables
 
-For preview deployments, ensure these environment variables are set:
+TokenMeter requires the following environment variables:
 
-- `VITE_SUPABASE_URL`: Your Supabase project URL
-- `VITE_SUPABASE_ANON_KEY`: Your Supabase anonymous key
-- `VITE_OPENAI_API_KEY`: OpenAI API key for testing (optional)
-- `VITE_STRIPE_PUBLIC_KEY`: Stripe public key for payments
-- `VITE_SLACK_CLIENT_ID`: Slack client ID for integration
+```
+# API Keys
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-...
+
+# Database Connection
+DB_CONNECTION_STRING=postgresql://...
+
+# Auth
+JWT_SECRET=your_jwt_secret
+AUTH_ENABLED=true
+
+# Features
+ENABLE_AB_TESTING=true
+SUGGESTION_ENGINE_VERSION=2
+```
+
+## API Endpoints
+
+### Usage Tracking
+
+- `GET /api/usage` - Get usage statistics
+- `GET /api/usage/models` - Get model-specific usage
+- `POST /api/usage/track` - Manually track usage
+
+### Cost Optimization
+
+- `GET /api/suggestions` - Get cost-saving suggestions
+- `PUT /api/suggestions/:id/implement` - Mark a suggestion as implemented
+- `DELETE /api/suggestions/:id` - Dismiss a suggestion
+
+### A/B Testing
+
+- `POST /api/ab-test` - Run an A/B test between two models
+
+Example request:
+```json
+{
+  "org_id": "org_123",
+  "endpoint_tag": "summarize",
+  "current_model": "gpt-4o",
+  "candidate_model": "gpt-3.5-turbo-16k",
+  "sample_size": 20
+}
+```
+
+Example response:
+```json
+{
+  "status": "success",
+  "data": {
+    "quality_delta_pct": 3.2,
+    "avg_latency_delta_ms": -450,
+    "success": true,
+    "sample_count": 20
+  }
+}
+```
+
+## Smart Suggestion Engine v2
+
+The Smart Suggestion Engine analyzes your LLM usage patterns and provides workload-aware cost-saving suggestions.
+
+### Extended Usage Data
+
+The engine uses these additional fields in usage tracking:
+- `avg_latency_ms`: Average response time
+- `temperature`: Model temperature setting
+- `top_p`: Top P setting
+- `endpoint_tag`: Purpose tag (e.g., "translate", "summarize")
+- `reply_tokens_p95`: 95th percentile of response token count
+- `task_intent`: Detected intent (sql, translate, summarize, code, chat)
+
+### Rules
+
+The engine implements specific optimization rules:
+
+| ID | Condition | Recommendation |
+|----|-----------|----------------|
+| R5 | OpenAI, model=gpt-4*, intent≠sql, context_p50<4K | Switch to GPT-3.5-Turbo-16K |
+| R6 | Anthropic Opus, context_p50>8K | Trim context / use embeddings |
+| R7 | Llama3 GPU idle > 30 min | Auto-stop GPU |
 
 ## License
 
-[MIT](LICENSE)
+This project is licensed under the MIT License - see the LICENSE file for details.
