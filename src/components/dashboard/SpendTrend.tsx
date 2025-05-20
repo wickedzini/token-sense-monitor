@@ -1,3 +1,5 @@
+
+// Updates to add adaptive radius to bars based on width
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
@@ -12,6 +14,28 @@ interface DateRange {
   from: Date;
   to: Date;
 }
+
+// Custom bar shape that adapts to width
+const AdaptiveRoundedBar = (props: any) => {
+  const { x, y, width, height, fill } = props;
+  
+  // Calculate radius based on width - thinner bars get smaller radius
+  const radius = Math.min(width * 0.3, 6);
+  
+  return (
+    <g>
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        rx={radius}
+        ry={radius}
+        fill={fill}
+      />
+    </g>
+  );
+};
 
 // Simulated data for the chart
 const generateDailyData = (dateRange: DateRange) => {
@@ -88,18 +112,6 @@ const SpendTrend = ({ className }: SpendTrendProps) => {
   
   // Get total spend for the period
   const totalSpend = chartData.reduce((sum, day) => sum + day.total, 0);
-  
-  // Calculate dynamic radius based on bar width
-  // For a responsive chart, this is approximated
-  const calculateRadius = (dataLength: number) => {
-    // The more data points, the smaller the radius should be
-    if (dataLength >= 30) return 0; // No radius for many bars (monthly view)
-    if (dataLength >= 14) return 2; // Small radius for moderate number of bars
-    if (dataLength >= 7) return 4;  // Medium radius for weekly view
-    return 6; // Larger radius for few bars
-  };
-  
-  const barRadius = calculateRadius(chartData.length);
   
   // Custom date display
   const dateRangeText = selectedPreset === "custom" 
@@ -205,20 +217,20 @@ const SpendTrend = ({ className }: SpendTrendProps) => {
               <Bar 
                 dataKey="GPT4" 
                 stackId="a" 
-                fill="#6A4CFF" 
-                radius={barRadius}
+                fill="#6A4CFF"
+                shape={<AdaptiveRoundedBar />}
               />
               <Bar 
                 dataKey="GPT3" 
                 stackId="a" 
-                fill="#9A7BFF" 
-                radius={barRadius}
+                fill="#9A7BFF"
+                shape={<AdaptiveRoundedBar />}
               />
               <Bar 
                 dataKey="Claude" 
                 stackId="a" 
-                fill="#C4B5FF" 
-                radius={barRadius}
+                fill="#C4B5FF"
+                shape={<AdaptiveRoundedBar />}
               />
             </BarChart>
           </ResponsiveContainer>

@@ -30,6 +30,7 @@ import About from "./pages/About";
 import Careers from "./pages/Careers";
 import Security from "./pages/Security";
 import Demo from "./pages/Demo";
+import Blog from "./pages/Blog";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
@@ -95,6 +96,7 @@ const AppRoutes = () => {
       <Route path="/docs" element={<Documentation />} />
       <Route path="/api-reference" element={<ApiReference />} />
       <Route path="/demo" element={<Demo />} />
+      <Route path="/blog" element={<Blog />} />
       
       {/* Auth Routes */}
       <Route path="/login" element={<AuthRoute><Login /></AuthRoute>} />
@@ -112,6 +114,7 @@ const AppRoutes = () => {
         <Route path="billing" element={<Billing />} />
         <Route path="billing/checkout" element={<BillingCheckout />} />
         <Route path="suggestions" element={<Suggestions />} />
+        <Route path="blog" element={<Blog />} />
         <Route path="suggest/:id" element={<Dashboard />} /> {/* This will be handled by the SuggestionDrawer */}
         <Route path="alerts/:alertId" element={<Alerts />} /> {/* This will be handled by an AlertDetailDrawer */}
       </Route>

@@ -156,6 +156,78 @@ const response = await openai.chat.completions.create({
 # This is a code-level change to your application`;
       qualityDelta = "≤2%";
       break;
+    
+    case "nlp_intent":
+      currentConfig = {
+        model: "GPT-4",
+        contextLength: "8,192 tokens",
+        costPerToken: "$0.00003",
+        useCase: "Text summarization"
+      };
+      proposedChange = {
+        model: "GPT-3.5-Turbo-16K",
+        contextLength: "16,384 tokens",
+        costPerToken: "$0.000005",
+        useCase: "Text summarization"
+      };
+      pros = ["83% cost reduction", "Larger context window", "Better for summarization tasks"];
+      cons = ["May have lower quality for complex tasks", "Less capability for reasoning"];
+      migrationCode = `// Current implementation
+const response = await openai.chat.completions.create({
+  model: "gpt-4",
+  messages: [
+    {role: "system", prompt: "Summarize the following text"},
+    {role: "user", content: longText}
+  ],
+  temperature: 0.3
+});
+
+// Proposed change
+const response = await openai.chat.completions.create({
+  model: "gpt-3.5-turbo-16k",
+  messages: [
+    {role: "system", prompt: "Summarize the following text"},
+    {role: "user", content: longText}
+  ],
+  temperature: 0.3
+});`;
+      qualityDelta = "≤3%";
+      break;
+      
+    case "sql_optimization":
+      currentConfig = {
+        model: "GPT-4",
+        latency: "5.2s",
+        costPerCall: "$0.08",
+        useCase: "SQL query generation"
+      };
+      proposedChange = {
+        model: "Claude Haiku",
+        latency: "1.8s",
+        costPerCall: "$0.01",
+        useCase: "SQL query generation"
+      };
+      pros = ["87% cost reduction", "70% faster response time", "Similar SQL output quality"];
+      cons = ["Different API integration required", "Less complex reasoning capabilities"];
+      migrationCode = `// Current implementation (OpenAI)
+const response = await openai.chat.completions.create({
+  model: "gpt-4",
+  messages: [
+    {role: "system", prompt: "Generate SQL for the following request"},
+    {role: "user", content: sqlRequest}
+  ]
+});
+
+// Proposed change (Anthropic)
+const response = await anthropic.messages.create({
+  model: "claude-3-haiku-20240307",
+  max_tokens: 1024,
+  messages: [
+    {role: "user", content: "Generate SQL for the following request: " + sqlRequest}
+  ]
+});`;
+      qualityDelta = "≤2%";
+      break;
       
     default:
       currentConfig = {};
@@ -205,7 +277,7 @@ const response = await openai.chat.completions.create({
   
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="sm:max-w-[550px] overflow-y-auto">
+      <SheetContent className="sm:max-w-[550px] overflow-y-auto pb-20">
         <SheetHeader className="mb-6">
           <SheetTitle className="flex items-center gap-2 text-xl">
             <span>{suggestion.title}</span>
@@ -383,19 +455,20 @@ const response = await openai.chat.completions.create({
               Always test changes in a non-production environment before implementing.
             </AlertDescription>
           </Alert>
-          
-          <div className="flex items-center justify-end gap-4 pt-4 sticky bottom-0 bg-white border-t py-4">
-            <Button variant="outline" onClick={handleDismiss} disabled={dismissing} className="min-w-[100px]">
-              {dismissing ? "Processing..." : "Dismiss"}
-            </Button>
-            <Button 
-              onClick={handleMarkImplemented} 
-              disabled={implementing}
-              className="bg-brand-primary hover:bg-brand-dark text-white min-w-[160px]"
-            >
-              {implementing ? "Processing..." : "Mark as implemented"}
-            </Button>
-          </div>
+        </div>
+        
+        {/* Fixed bottom button container */}
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t flex items-center justify-end gap-4 w-full sm:w-[550px]">
+          <Button variant="outline" onClick={handleDismiss} disabled={dismissing} className="min-w-[100px]">
+            {dismissing ? "Processing..." : "Dismiss"}
+          </Button>
+          <Button 
+            onClick={handleMarkImplemented} 
+            disabled={implementing}
+            className="bg-brand-primary hover:bg-brand-dark text-white min-w-[160px]"
+          >
+            {implementing ? "Processing..." : "Mark as implemented"}
+          </Button>
         </div>
       </SheetContent>
     </Sheet>
