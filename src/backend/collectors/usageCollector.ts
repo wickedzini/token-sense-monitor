@@ -1,4 +1,3 @@
-
 import { UsageRaw } from '../schema/suggestionEngine';
 import { detectIntent } from '../utils/intentDetector';
 
@@ -17,6 +16,7 @@ export interface UsageEvent {
   temperature?: number;
   top_p?: number;
   endpoint_tag?: string;
+  task_intent?: 'sql' | 'translate' | 'summarize' | 'code' | 'general_chat';
 }
 
 /**
@@ -48,8 +48,8 @@ export async function processUsageEvent(event: UsageEvent): Promise<UsageRaw> {
   }
 
   // Detect intent if not provided
-  let task_intent = undefined;
-  if (!event.task_intent && event.prompt_text) {
+  let task_intent = event.task_intent;
+  if (!task_intent && event.prompt_text) {
     task_intent = await detectIntent(event.prompt_text, event.endpoint_tag);
   }
 
