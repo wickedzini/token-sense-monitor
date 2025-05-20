@@ -92,6 +92,24 @@ export const up = async (db: any) => {
     CREATE INDEX IF NOT EXISTS idx_suggestions_org_id ON suggestions(org_id);
     CREATE INDEX IF NOT EXISTS idx_suggestions_status ON suggestions(status);
   `);
+  
+  // Create AB Test table
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS ab_tests (
+      id SERIAL PRIMARY KEY,
+      org_id VARCHAR(50) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      current_model VARCHAR(50) NOT NULL,
+      candidate_model VARCHAR(50) NOT NULL,
+      endpoint_tag VARCHAR(50),
+      sample_size INTEGER NOT NULL,
+      quality_delta_pct FLOAT NOT NULL,
+      avg_latency_delta_ms INTEGER NOT NULL,
+      success BOOLEAN NOT NULL
+    );
+    
+    CREATE INDEX IF NOT EXISTS idx_ab_tests_org_id ON ab_tests(org_id);
+  `);
 };
 
 export const down = async (db: any) => {
@@ -131,5 +149,10 @@ export const down = async (db: any) => {
   // Drop suggestions table
   await db.query(`
     DROP TABLE IF EXISTS suggestions;
+  `);
+  
+  // Drop AB Test table
+  await db.query(`
+    DROP TABLE IF EXISTS ab_tests;
   `);
 };

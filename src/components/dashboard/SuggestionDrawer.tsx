@@ -17,6 +17,7 @@ import { Check, Copy, AlertCircle, ThumbsUp, ThumbsDown } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { ReactNode } from "react";
+import { markImplemented, dismissSuggestion } from "@/backend/api/suggestions";
 
 interface SuggestionDrawerProps {
   open: boolean;
@@ -28,10 +29,20 @@ interface SuggestionDrawerProps {
     description: string;
     impact: number;
     impactType: string;
+    details?: {
+      before?: Record<string, any>;
+      after?: Record<string, any>;
+      snippet?: {
+        language: string;
+        code: string;
+      };
+      script?: string;
+    };
   } | null;
+  onSuggestionChange?: () => void;
 }
 
-const SuggestionDrawer = ({ open, onClose, suggestion }: SuggestionDrawerProps) => {
+const SuggestionDrawer = ({ open, onClose, suggestion, onSuggestionChange }: SuggestionDrawerProps) => {
   const [copied, setCopied] = useState(false);
   const [implementing, setImplementing] = useState(false);
   const [dismissing, setDismissing] = useState(false);
@@ -47,233 +58,129 @@ const SuggestionDrawer = ({ open, onClose, suggestion }: SuggestionDrawerProps) 
   let curlSnippet = "";
   let qualityDelta = "≤5%"; // Default quality impact
   
+  // Extract configuration data from suggestion details if available
+  if (suggestion.details) {
+    if (suggestion.details.before) {
+      currentConfig = Object.entries(suggestion.details.before).reduce((acc, [key, value]) => {
+        acc[key] = value.toString();
+        return acc;
+      }, {});
+    }
+    
+    if (suggestion.details.after) {
+      proposedChange = Object.entries(suggestion.details.after).reduce((acc, [key, value]) => {
+        acc[key] = value.toString();
+        return acc;
+      }, {});
+    }
+    
+    if (suggestion.details.snippet?.code) {
+      migrationCode = suggestion.details.snippet.code;
+    }
+    
+    if (suggestion.details.script) {
+      curlSnippet = suggestion.details.script;
+    }
+  }
+  
   switch (suggestion.type) {
     case "model_switch":
-      currentConfig = {
-        model: "GPT-4",
-        contextLength: "8,192 tokens",
-        costPerCall: "$0.12",
-        callsPerDay: "342"
-      };
-      proposedChange = {
-        model: "GPT-3.5 Turbo",
-        contextLength: "8,192 tokens",
-        costPerCall: "$0.04",
-        callsPerDay: "342"
-      };
-      pros = ["67% cost reduction", "Similar quality for simple tasks", "Same context length"];
+      pros = ["Cost reduction", "Similar quality for simple tasks", "Same context length"];
       cons = ["Lower reasoning ability", "Slightly higher error rate", "Not recommended for complex tasks"];
-      migrationCode = `// Current implementation
-const response = await openai.chat.completions.create({
-  model: "gpt-4",
-  messages: messages,
-  temperature: 0.7
-});
-
-// Proposed change
-const response = await openai.chat.completions.create({
-  model: "gpt-3.5-turbo",
-  messages: messages,
-  temperature: 0.7
-});`;
-      curlSnippet = `curl https://api.openai.com/v1/chat/completions \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer $OPENAI_API_KEY" \\
-  -d '{
-    "model": "gpt-3.5-turbo",
-    "messages": [{"role": "user", "content": "Hello!"}],
-    "temperature": 0.7
-  }'`;
       qualityDelta = "≤5%";
       break;
     
     case "idle_resource":
-      currentConfig = {
-        instanceType: "g4dn.xlarge",
-        region: "us-west-2",
-        hourlyRate: "$0.09",
-        idleTime: "26 hours"
-      };
-      proposedChange = {
-        action: "Shutdown instance",
-        potentialAction: "Auto-scaling group with min=0"
-      };
       pros = ["Immediate cost savings", "Easy to implement", "No downtime"];
       cons = ["Need to restart manually when needed", "Lose GPU availability"];
-      migrationCode = `# AWS CLI command to stop the instance
-aws ec2 stop-instances --instance-ids i-1234567890abcdef0
-
-# To enable auto-scaling (recommended)
-aws autoscaling create-auto-scaling-group --auto-scaling-group-name dev-llm-asg \\
-  --min-size 0 --max-size 2 --desired-capacity 1 \\
-  --launch-template LaunchTemplateId=lt-0123456789abcdef0,Version='$Latest'`;
-      curlSnippet = `# AWS API call via curl
-curl -X POST \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer $AWS_TOKEN" \\
-  -d '{"InstanceIds": ["i-1234567890abcdef0"]}' \\
-  https://ec2.us-west-2.amazonaws.com/api/v1/instances/stop`;
       qualityDelta = "0%";
       break;
       
     case "context_length":
-      currentConfig = {
-        averageContextLength: "6,500 tokens",
-        usableContext: "4,550 tokens (70%)",
-        modelLimit: "8,192 tokens",
-        wastedTokens: "1,950 tokens"
-      };
-      proposedChange = {
-        recommendedLength: "4,800 tokens",
-        savingsPerCall: "1,700 tokens",
-        implementation: "Context window trimming"
-      };
       pros = ["Reduced token usage", "Lower latency", "Cost savings without quality impact"];
       cons = ["Requires code changes", "May need testing to ensure quality"];
-      migrationCode = `// Before: Sending full context
-const response = await openai.chat.completions.create({
-  model: "gpt-4",
-  messages: fullContextMessages, // 6,500 tokens on average
-  temperature: 0.7
-});
-
-// After: Using more efficient context
-function trimContext(messages, maxTokens = 4800) {
-  // Keep system prompt and last N messages
-  const systemPrompt = messages.find(m => m.role === 'system');
-  const recentMessages = messages.filter(m => m.role !== 'system')
-    .slice(-10); // Keep last 10 messages
-  
-  return [systemPrompt, ...recentMessages];
-}
-
-const response = await openai.chat.completions.create({
-  model: "gpt-4",
-  messages: trimContext(fullContextMessages),
-  temperature: 0.7
-});`;
-      curlSnippet = `# No direct curl equivalent for this optimization
-# This is a code-level change to your application`;
       qualityDelta = "≤2%";
       break;
     
     case "nlp_intent":
-      currentConfig = {
-        model: "GPT-4",
-        contextLength: "8,192 tokens",
-        costPerToken: "$0.00003",
-        useCase: "Text summarization"
-      };
-      proposedChange = {
-        model: "GPT-3.5-Turbo-16K",
-        contextLength: "16,384 tokens",
-        costPerToken: "$0.000005",
-        useCase: "Text summarization"
-      };
-      pros = ["83% cost reduction", "Larger context window", "Better for summarization tasks"];
+      pros = ["Cost reduction", "Larger context window", "Better for specific tasks"];
       cons = ["May have lower quality for complex tasks", "Less capability for reasoning"];
-      migrationCode = `// Current implementation
-const response = await openai.chat.completions.create({
-  model: "gpt-4",
-  messages: [
-    {role: "system", prompt: "Summarize the following text"},
-    {role: "user", content: longText}
-  ],
-  temperature: 0.3
-});
-
-// Proposed change
-const response = await openai.chat.completions.create({
-  model: "gpt-3.5-turbo-16k",
-  messages: [
-    {role: "system", prompt: "Summarize the following text"},
-    {role: "user", content: longText}
-  ],
-  temperature: 0.3
-});`;
       qualityDelta = "≤3%";
       break;
       
     case "sql_optimization":
-      currentConfig = {
-        model: "GPT-4",
-        latency: "5.2s",
-        costPerCall: "$0.08",
-        useCase: "SQL query generation"
-      };
-      proposedChange = {
-        model: "Claude Haiku",
-        latency: "1.8s",
-        costPerCall: "$0.01",
-        useCase: "SQL query generation"
-      };
-      pros = ["87% cost reduction", "70% faster response time", "Similar SQL output quality"];
+      pros = ["Cost reduction", "Faster response time", "Similar SQL output quality"];
       cons = ["Different API integration required", "Less complex reasoning capabilities"];
-      migrationCode = `// Current implementation (OpenAI)
-const response = await openai.chat.completions.create({
-  model: "gpt-4",
-  messages: [
-    {role: "system", prompt: "Generate SQL for the following request"},
-    {role: "user", content: sqlRequest}
-  ]
-});
-
-// Proposed change (Anthropic)
-const response = await anthropic.messages.create({
-  model: "claude-3-haiku-20240307",
-  max_tokens: 1024,
-  messages: [
-    {role: "user", content: "Generate SQL for the following request: " + sqlRequest}
-  ]
-});`;
       qualityDelta = "≤2%";
       break;
       
     default:
-      currentConfig = {};
-      proposedChange = {};
-      pros = [];
-      cons = [];
-      migrationCode = "";
-      curlSnippet = "";
+      pros = ["Cost savings", "Easy implementation"];
+      cons = ["May require testing"];
   }
   
   const handleCopyCode = (code: string, type: 'migration' | 'curl') => {
     navigator.clipboard.writeText(code);
     setCopied(true);
-    toast.success(`${type === 'migration' ? 'Code' : 'cURL snippet'} copied to clipboard`);
+    toast.success(`${type === 'migration' ? 'Code' : 'Script'} copied to clipboard`);
     
     setTimeout(() => {
       setCopied(false);
     }, 2000);
   };
   
-  const handleMarkImplemented = () => {
+  const handleMarkImplemented = async () => {
     setImplementing(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      toast.success("Suggestion marked as implemented");
+    try {
+      // Call the backend API to mark as implemented
+      const success = await markImplemented(suggestion.id);
+      
+      if (success) {
+        toast.success("Suggestion marked as implemented");
+        if (onSuggestionChange) {
+          onSuggestionChange();
+        }
+        onClose();
+      } else {
+        toast.error("Failed to update suggestion status");
+      }
+    } catch (error) {
+      console.error("Error marking suggestion as implemented:", error);
+      toast.error("An error occurred while updating");
+    } finally {
       setImplementing(false);
-      onClose();
-    }, 1000);
+    }
   };
   
-  const handleDismiss = () => {
+  const handleDismiss = async () => {
     setDismissing(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      toast.success("Suggestion dismissed");
+    try {
+      // Call the backend API to dismiss the suggestion
+      const success = await dismissSuggestion(suggestion.id);
+      
+      if (success) {
+        toast.success("Suggestion dismissed");
+        if (onSuggestionChange) {
+          onSuggestionChange();
+        }
+        onClose();
+      } else {
+        toast.error("Failed to update suggestion status");
+      }
+    } catch (error) {
+      console.error("Error dismissing suggestion:", error);
+      toast.error("An error occurred while updating");
+    } finally {
       setDismissing(false);
-      onClose();
-    }, 1000);
+    }
   };
   
   // Calculate savings impact
-  const dailySavings = suggestion.impact;
-  const monthlySavings = dailySavings * 30;
-  const annualSavings = dailySavings * 365;
+  const dailySavings = suggestion.impactType === 'daily' ? suggestion.impact : suggestion.impact / 30;
+  const monthlySavings = suggestion.impactType === 'monthly' ? suggestion.impact : suggestion.impact * (suggestion.impactType === 'daily' ? 30 : 1/12);
+  const annualSavings = suggestion.impactType === 'annual' ? suggestion.impact : suggestion.impact * (suggestion.impactType === 'monthly' ? 12 : 365);
   
   return (
     <Sheet open={open} onOpenChange={onClose}>
@@ -426,10 +333,10 @@ const response = await anthropic.messages.create({
                 </div>
               </div>
 
-              {/* cURL Snippet */}
+              {/* Script/Command */}
               {curlSnippet && (
                 <div>
-                  <h4 className="text-sm font-medium mb-2 text-gray-700">cURL Example</h4>
+                  <h4 className="text-sm font-medium mb-2 text-gray-700">Script Example</h4>
                   <div className="relative">
                     <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm font-mono overflow-x-auto">
                       <Button 
